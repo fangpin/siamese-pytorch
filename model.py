@@ -2,14 +2,9 @@ import torch
 import torchvision
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.optim as optim
-import torch.nn.functional as F
 
-from PIL import Image
-import matplotlib.pyplot as plt
 
 import torchvision.transforms as transforms
-import copy
 
 
 class Siamese(nn.Module):
@@ -43,3 +38,9 @@ class Siamese(nn.Module):
         dis = torch.abs(out1 - out2)
         out = nn.linear(4096, 1)(dis)
         return nn.Sigmoid()(out)
+
+
+# for test
+if __name__ == '__main__':
+    net = Siamese()
+    print(net)
