@@ -33,10 +33,10 @@ class Siamese(nn.Module):
         return x
 
     def forward(self, x1, x2):
-        out1 = self.forward(x1)
-        out2 = self.forward(x2)
+        out1 = self.forward_one(x1)
+        out2 = self.forward_one(x2)
         dis = torch.abs(out1 - out2)
-        out = nn.linear(4096, 1)(dis)
+        out = nn.Linear(4096, 1)(dis)
         return nn.Sigmoid()(out)
 
 
