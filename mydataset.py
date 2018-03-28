@@ -53,7 +53,7 @@ class OmniglotTrain(Dataset):
         if self.transform is not None:
             image1 = self.transform(image1)
             image2 = self.transform(image2)
-        return (image1, image2), self.samples[index][1]
+        return (image1, image2), torch.from_numpy(np.array(self.samples[index][1]))
 
 
 class OmniglotTest(object):
