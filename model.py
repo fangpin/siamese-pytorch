@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class Siamese(nn.Module):
@@ -9,23 +10,18 @@ class Siamese(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(1, 64, 10),  # 64@96*96
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(64),
             nn.MaxPool2d(2),  # 64@48*48
-            nn.Conv2d(64, 128, (7,7)),
+            nn.Conv2d(64, 128, 7),
             nn.ReLU(),    # 128@42*42
-            nn.BatchNorm2d(128),
             nn.MaxPool2d(2),   # 128@21*21
-            nn.Conv2d(128, 128, (4,4)),
+            nn.Conv2d(128, 128, 4),
             nn.ReLU(), # 128@18*18
-            nn.BatchNorm2d(128),
             nn.MaxPool2d(2), # 128@9*9
-            nn.Conv2d(128, 256, (4,4)),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(128, 256, 4),
             nn.ReLU(),   # 256@6*6
         )
-        self.liner = nn.Sequential(nn.Linear(9216, 1024), nn.Sigmoid())
-        self.out = nn.Linear(1024, 1)
-        self.sigmoid = nn.Sigmoid()
+        self.liner = nn.Sequential(nn.Linear(9216, 4096), nn.Sigmoid())
+        self.out = nn.Linear(4096, 1)
 
     def forward_one(self, x):
         x = self.conv(x)
