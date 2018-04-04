@@ -9,17 +9,17 @@ import torchvision.datasets as dset
 from PIL import Image
 
 
-
-
 class OmniglotTrain(Dataset):
 
     def __init__(self, dataset, transform=None):
         super(OmniglotTrain, self).__init__()
+        np.random.seed(0)
         self.dataset = dataset
         self.transform = transform
+        self.img1 = None
 
     def __len__(self):
-        return len(self.dataset.imgs)
+        return  21000000
 
     def __getitem__(self, index):
         image1 = random.choice(self.dataset.imgs)
@@ -49,36 +49,49 @@ class OmniglotTrain(Dataset):
         return image1, image2, torch.from_numpy(np.array([label], dtype=np.float32))
 
 
-class OmniglotTest(object):
 
-    def __init__(self, data_path, way=20):
+class OmniglotTest(Dataset):
+
+    def __init__(self, dataset, transform=None, times=200, way=20):
+        np.random.seed(1)
         super(OmniglotTest, self).__init__()
+        self.dataset = dataset
+        self.transform = transform
+        self.times = times
         self.way = way
-        self.samples = []
-        tmp = []
-        path = [os.path.join(data_path, p) for p in os.listdir(data_path)]
-        alphabetas = npc(path, 10)
-        for time in range(2):
-            for i, alpha in enumerate(alphabetas):
-                cnt = 0
-                for j, char in enumerate([os.path.join(alpha, p) for p in os.listdir(alpha)]):
-                   cnt += 1
-                   # print(os.path.join(char, p), 2)
-                   tmp.append(npc([os.path.join(char, p) for p in os.listdir(char)], 2))
-                   if cnt == self.way:
-                       break
 
-        for i in range(20):
-            for j in range(self.way):
-                for k in range(self.way):
-                    idx1, idx2 = i * self.way + j, i * self.way + k
-                    label = 1.0 if idx1 == idx2 else 0.0
-                    self.samples.append(((tmp[idx1][0], tmp[idx2][1]), label))
+    def __len__(self):
+        return self.times * self.way
 
+    def __getitem__(self, index):
+        idx = index % self.way
+        label = None
+        # generate image pair from same class
+        if idx == 0:
+            self.img1 = random.choice(self.dataset.imgs)
+            while True:
+                img2 = random.choice(self.dataset.imgs)
+                if self.img1[1] == img2[1]:
+                    break
+        # generate image pair from different class
+        else:
+            while True:
+                img2 = random.choice(self.dataset.imgs)
+                if self.img1[1] != img2[1]:
+                    break
+
+        img1 = Image.open(self.img1[0])
+        img2 = Image.open(img2[0])
+        img1 = img1.convert('L')
+        img2 = img2.convert('L')
+
+        if self.transform:
+            img1 = self.transform(img1)
+            img2 = self.transform(img2)
+        return img1, img2
 
 
 # test
 if __name__=='__main__':
-    # omniglotTrain = OmniglotTrain('./images_background', 30000*8)
-    # print(omniglotTrain)
-    test = OmniglotTest('./images_evaluation', 20)
+    omniglotTrain = OmniglotTrain('./images_background', 30000*8)
+    print(omniglotTrain)
