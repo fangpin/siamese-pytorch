@@ -10,10 +10,6 @@ train and test on the dataset Omniglot
 
 ## run step
 - download dataset
-- preprocess dataset to make dataLoader easier by
-``` shell
-python3 make_dataset.py
-```
 - train and test by
 ```shell
 python3 train.py
