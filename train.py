@@ -21,7 +21,6 @@ if __name__ == '__main__':
 
     Flags = gflags.FLAGS
     gflags.DEFINE_bool("cuda", True, "use cuda")
-    # todo: need preprocessed dataset here
     gflags.DEFINE_string("train_path", "/home/data/pin/data/omniglot/images_background", "training folder")
     gflags.DEFINE_string("test_path", "/home/data/pin/data/omniglot/images_evaluation", 'path of testing folder')
     gflags.DEFINE_integer("way", 20, "how much way one-shot learning")
