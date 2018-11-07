@@ -11,102 +11,114 @@ import matplotlib.pyplot as plt
 from model import Siamese
 import time
 import numpy as np
+import gflags
+import sys
+from collections import deque
+import os
 
 
-cuda = torch.cuda.is_available()
+if __name__ == '__main__':
+
+    Flags = gflags.FLAGS
+    gflags.DEFINE_bool("cuda", True, "use cuda")
+    # todo: need preprocessed dataset here
+    gflags.DEFINE_string("train_path", "/home/data/pin/data/omniglot/images_background", "training folder")
+    gflags.DEFINE_string("test_path", "/home/data/pin/data/omniglot/images_evaluation", 'path of testing folder')
+    gflags.DEFINE_integer("way", 20, "how much way one-shot learning")
+    gflags.DEFINE_string("times", 400, "number of samples to test accuracy")
+    gflags.DEFINE_integer("workers", 4, "number of dataLoader workers")
+    gflags.DEFINE_integer("batch_size", 128, "number of batch size")
+    gflags.DEFINE_float("lr", 0.00006, "learning rate")
+    gflags.DEFINE_integer("show_every", 10, "show result after each show_every iter.")
+    gflags.DEFINE_integer("save_every", 100, "save model after each save_every iter.")
+    gflags.DEFINE_integer("test_every", 100, "test model after each test_every iter.")
+    gflags.DEFINE_integer("max_iter", 90000, "number of iterations before stopping")
+    gflags.DEFINE_string("model_path", "/home/data/pin/model/siamese", "path to store model")
+    gflags.DEFINE_string("gpu_ids", "0,1,2,3", "gpu ids used to train")
+
+    Flags(sys.argv)
+
+    data_transforms = transforms.Compose([
+        transforms.RandomAffine(15),
+        transforms.ToTensor()
+    ])
 
 
-data_transforms = transforms.Compose([
-    transforms.RandomAffine(15),
-    transforms.ToTensor()
-])
+    # train_dataset = dset.ImageFolder(root=Flags.train_path)
+    # test_dataset = dset.ImageFolder(root=Flags.test_path)
 
 
-train_path = 'background'
-test_path = 'evaluation'
-train_dataset = dset.ImageFolder(root=train_path)
-test_dataset = dset.ImageFolder(root=test_path)
+    os.environ["CUDA_VISIBLE_DEVICES"] = Flags.gpu_ids
+    print("use gpu:", Flags.gpu_ids, "to train.")
 
-way = 20
-times = 400
+    trainSet = OmniglotTrain(Flags.train_path, transform=data_transforms)
+    testSet = OmniglotTest(Flags.test_path, transform=transforms.ToTensor(), times = Flags.times, way = Flags.way)
+    testLoader = DataLoader(testSet, batch_size=Flags.way, shuffle=False, num_workers=Flags.workers)
 
-dataSet = OmniglotTrain(train_dataset, transform=data_transforms)
-testSet = OmniglotTest(test_dataset, transform=transforms.ToTensor(), times = times, way = way)
-testLoader = DataLoader(testSet, batch_size=way, shuffle=False, num_workers=16)
+    trainLoader = DataLoader(trainSet, batch_size=Flags.batch_size, shuffle=False, num_workers=Flags.workers)
 
-dataLoader = DataLoader(dataSet, batch_size=128,\
-                        shuffle=False, num_workers=16)
+    loss_fn = torch.nn.BCEWithLogitsLoss(size_average=True)
+    net = Siamese()
 
+    # multi gpu
+    if len(Flags.gpu_ids.split(",")):
+        net = torch.nn.DataParallel(net)
 
-def show_data_batch(sample_batched):
-    image_batch = sample_batched[0][0]
-    grid = torchvision.utils.make_grid(sample_batched)
-    plt.figure()
-    plt.imshow(grid.numpy().transpose((1, 2, 0)))
-    plt.title('Batch from dataloader')
-    plt.axis('off')
-    plt.show()
+    if Flags.cuda:
+        net.cuda()
 
+    net.train()
 
-#  def loss_fn(label, output):
-    #  return -torch.mean(label * torch.log(output) + (1.0-label) * torch.log(1.0-output))
-loss_fn = torch.nn.BCEWithLogitsLoss(size_average=True)
-
-
-learning_rate = 0.00006
-
-
-net = Siamese()
-
-train_loss = []
-net.train()
-optimizer = torch.optim.Adam(net.parameters(),lr = learning_rate )
-optimizer.zero_grad()
-if cuda:
-    net.cuda()
-
-show_every = 10
-save_every = 100
-test_every = 100
-train_loss = []
-loss_val = 0
-max_iter = 90000
-
-for batch_id, (img1, img2, label) in enumerate(dataLoader, 1):
-    if batch_id > max_iter:
-        break
-    batch_start = time.time()
-    if cuda:
-        img1, img2, label = Variable(img1.cuda()), Variable(img2.cuda()), Variable(label.cuda())
-    else:
-        img1, img2, label = Variable(img1), Variable(img2), Variable(label)
+    optimizer = torch.optim.Adam(net.parameters(),lr = Flags.lr )
     optimizer.zero_grad()
-    output = net.forward(img1, img2)
-    loss = loss_fn(output, label)
-    loss_val += loss.data[0]
-    loss.backward()
-    optimizer.step()
-    if batch_id % show_every == 0 :
-        print('[%d]\tloss:\t%.5f\tTook\t%.2f s'%(batch_id, loss_val/show_every, (time.time() - batch_start)*show_every))
-        loss_val = 0
-    if batch_id % save_every == 0:
-        torch.save(net.state_dict(), './model/model-batch-%d.pth'%(batch_id+1,))
-    if batch_id % test_every == 0:
-        right, error = 0, 0
-        for _, (test1, test2) in enumerate(testLoader, 1):
-            if cuda:
-                test1, test2 = test1.cuda(), test2.cuda()
-            test1, test2 = Variable(test1), Variable(test2)
-            output = net.forward(test1, test2).data.cpu().numpy()
-            pred = np.argmax(output)
-            if pred == 0:
-                right += 1
-            else: error += 1
-        print('*'*70)
-        print('[%d]\tright:\t%d\terror:\t%d\tprecision:\t%f'%(batch_id, right, error, right*1.0/(right+error)))
-        print('*'*70)
-    train_loss.append(loss_val)
-#  learning_rate = learning_rate * 0.95
 
-with open('train_loss', 'wb') as f:
-    pickle.dump(train_loss, f)
+    train_loss = []
+    loss_val = 0
+    time_start = time.time()
+    queue = deque(maxlen=20)
+
+    for batch_id, (img1, img2, label) in enumerate(trainLoader, 1):
+        if batch_id > Flags.max_iter:
+            break
+        if Flags.cuda:
+            img1, img2, label = Variable(img1.cuda()), Variable(img2.cuda()), Variable(label.cuda())
+        else:
+            img1, img2, label = Variable(img1), Variable(img2), Variable(label)
+        optimizer.zero_grad()
+        output = net.forward(img1, img2)
+        loss = loss_fn(output, label)
+        loss_val += loss.data[0]
+        loss.backward()
+        optimizer.step()
+        if batch_id % Flags.show_every == 0 :
+            print('[%d]\tloss:\t%.5f\tTook\t%.2f s'%(batch_id, loss_val/Flags.show_every, time.time() - time_start))
+            loss_val = 0
+            time_start = time.time()
+        if batch_id % Flags.save_every == 0:
+            torch.save(net.state_dict(), Flags.model_path + '/model-inter-' + str(batch_id+1))
+        if batch_id % Flags.test_every == 0:
+            right, error = 0, 0
+            for _, (test1, test2) in enumerate(testLoader, 1):
+                if Flags.cuda:
+                    test1, test2 = test1.cuda(), test2.cuda()
+                test1, test2 = Variable(test1), Variable(test2)
+                output = net.forward(test1, test2).data.cpu().numpy()
+                pred = np.argmax(output)
+                if pred == 0:
+                    right += 1
+                else: error += 1
+            print('*'*70)
+            print('[%d]\tright:\t%d\terror:\t%d\tprecision:\t%f'%(batch_id, right, error, right*1.0/(right+error)))
+            print('*'*70)
+            queue.append(right*1.0/(right+error))
+        train_loss.append(loss_val)
+    #  learning_rate = learning_rate * 0.95
+
+    with open('train_loss', 'wb') as f:
+        pickle.dump(train_loss, f)
+
+    acc = 0.0
+    with d in queue:
+        acc += d
+    print("#"*70)
+    print("final accuracy: ", acc/20)
