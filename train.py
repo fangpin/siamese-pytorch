@@ -117,7 +117,7 @@ if __name__ == '__main__':
         pickle.dump(train_loss, f)
 
     acc = 0.0
-    with d in queue:
+    for d in queue:
         acc += d
     print("#"*70)
     print("final accuracy: ", acc/20)
