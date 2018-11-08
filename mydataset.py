@@ -29,7 +29,7 @@ class OmniglotTrain(Dataset):
                     datas[idx] = []
                     for samplePath in os.listdir(os.path.join(dataPath, alphaPath, charPath)):
                         filePath = os.path.join(dataPath, alphaPath, charPath, samplePath)
-                        datas[idx].append(Image.open(filePath).convert('L'))
+                        datas[idx].append(Image.open(filePath).rotate(agree).convert('L'))
                     idx += 1
         print("finish loading training dataset to memory")
         return datas, idx
