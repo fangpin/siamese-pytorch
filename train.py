@@ -86,15 +86,15 @@ if __name__ == '__main__':
         optimizer.zero_grad()
         output = net.forward(img1, img2)
         loss = loss_fn(output, label)
-        loss_val += loss.data[0]
+        loss_val += loss.item()
         loss.backward()
         optimizer.step()
         if batch_id % Flags.show_every == 0 :
-            print('[%d]\tloss:\t%.5f\tTook\t%.2f s'%(batch_id, loss_val/Flags.show_every, time.time() - time_start))
+            print('[%d]\tloss:\t%.5f\ttime lapsed:\t%.2f s'%(batch_id, loss_val/Flags.show_every, time.time() - time_start))
             loss_val = 0
             time_start = time.time()
         if batch_id % Flags.save_every == 0:
-            torch.save(net.state_dict(), Flags.model_path + '/model-inter-' + str(batch_id+1))
+            torch.save(net.state_dict(), Flags.model_path + '/model-inter-' + str(batch_id+1) + ".pt")
         if batch_id % Flags.test_every == 0:
             right, error = 0, 0
             for _, (test1, test2) in enumerate(testLoader, 1):
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                     right += 1
                 else: error += 1
             print('*'*70)
-            print('[%d]\tright:\t%d\terror:\t%d\tprecision:\t%f'%(batch_id, right, error, right*1.0/(right+error)))
+            print('[%d]\tTest set\tcorrect:\t%d\terror:\t%d\tprecision:\t%f'%(batch_id, right, error, right*1.0/(right+error)))
             print('*'*70)
             queue.append(right*1.0/(right+error))
         train_loss.append(loss_val)
