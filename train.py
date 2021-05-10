@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from dataset_utils import ImageDataset
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
+import torch.nn.functional as Function
 import random
 import time
 from torch.utils.data import DataLoader
@@ -22,7 +23,16 @@ import pandas as pd
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
 
-
+def matplotlib_imshow(img, one_channel=False):
+    if one_channel:
+        img = img.mean(dim=0)
+    img = img / 2 + 0.5     # unnormalize
+    npimg = img.numpy()
+    if one_channel:
+        plt.imshow(npimg, cmap="Greys")
+    else:
+        plt.imshow(np.transpose(npimg, (1, 2, 0)))
+        
 def images_to_probs(net, images):
     '''
     Generates predictions and corresponding probabilities from a trained
@@ -32,7 +42,7 @@ def images_to_probs(net, images):
     # convert output probabilities to predicted class
     _, preds_tensor = torch.max(output, 1)
     preds = np.squeeze(preds_tensor.cpu().numpy())
-    return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
+    return preds, [Function.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
 
 
 def plot_classes_preds(net, images, labels):
