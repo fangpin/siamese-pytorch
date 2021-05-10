@@ -243,7 +243,7 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         start_time = time.monotonic()
-
+        model.to(device)
         best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
         end_time = time.monotonic()
 
@@ -255,6 +255,7 @@ def main():
 
     model = Siamese()
     model.load_state_dict(torch.load(args.model_name+ '.pth'))
+    model.to(device)
     loss, acc = evaluate(args, model, test_dataloader, criterion, device)
     print("TEST RESULTS: ", loss, acc)
 
