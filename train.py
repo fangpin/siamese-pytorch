@@ -151,6 +151,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                               global_step= (epoch - 1) * len(train_dataloader) + batch_idx)
 
             epoch_loss = 0.0
+            epoch_acc = 0.0
 
 
     # return epoch_loss / len(train_dataloader), epoch_acc / len(train_dataloader)
