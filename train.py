@@ -3,7 +3,6 @@ from __future__ import print_function
 import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from dataset_utils import ImageDataset
@@ -160,7 +159,6 @@ def main():
     parser.add_argument('--weight-decay', type=float, default=0.0,
                         help='Weight decay hyperparameter')
     args = parser.parse_args()
-    args.use_cuda = not args.no_cuda and torch.cuda.is_available()
     # set seed
     writer = SummaryWriter('runs/' + args.model_name)
 
