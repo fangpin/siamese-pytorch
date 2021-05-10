@@ -104,7 +104,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
             print('Train Epoch: {} [{}/{} ({:.2f}%)]\t'
                   'Train Loss: {:.2f}  Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
                 epoch, batch_idx * len(train_inputs), len(train_dataloader.dataset),
-                       100. * batch_idx / len(train_dataloader), loss.item(), val_loss, val_acc))
+                       100. * batch_idx / len(train_dataloader), epoch_loss/args.log_interval, val_loss, val_acc))
             writer.add_scalar('training loss',
                             epoch_loss/args.log_interval,
                               (epoch-1) * len(train_dataloader) + batch_idx)
