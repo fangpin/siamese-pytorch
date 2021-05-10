@@ -90,7 +90,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         optimizer.step()
         epoch_loss += loss.item()
         epoch_acc += acc.item()
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % args.log_interval == args.log_interval-1:
             val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
             if val_loss < best_valid_loss:
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
@@ -102,9 +102,9 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
             args.val_loss.append(val_loss)
             args.val_acc.append(val_acc)
             print('Train Epoch: {} [{}/{} ({:.2f}%)]\t'
-                  'Train Loss: {:.2f}  Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
+                  'Train Loss: {:.2f} Train Acc: {:.2f}%  Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
                 epoch, batch_idx * len(train_inputs), len(train_dataloader.dataset),
-                       100. * batch_idx / len(train_dataloader), epoch_loss/args.log_interval, val_loss, val_acc))
+                       100. * batch_idx / len(train_dataloader), epoch_loss/args.log_interval, epoch_acc/args.log_interval, val_loss, val_acc))
             writer.add_scalar('training loss',
                             epoch_loss/args.log_interval,
                               (epoch-1) * len(train_dataloader) + batch_idx)
