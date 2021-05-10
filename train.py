@@ -35,7 +35,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-def evaluate(model, val_dataloader, criterion, device):
+def evaluate(args, model, val_dataloader, criterion, device):
     epoch_loss = 0
     epoch_acc = 0
 
@@ -251,7 +251,7 @@ def main():
 
     model = Siamese()
     model.load_state_dict(torch.load(args.model_name+ '.pth'))
-    loss, acc = evaluate(model, test_dataloader, criterion, device)
+    loss, acc = evaluate(args, model, test_dataloader, criterion, device)
     print("TEST RESULTS: ", loss, acc)
 
 
