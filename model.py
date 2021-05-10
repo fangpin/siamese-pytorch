@@ -9,7 +9,7 @@ class Siamese(nn.Module):
     def __init__(self):
         super(Siamese, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 96, 94),  # 96x35x35
+            nn.Conv2d(3, 96, 94),  # 96x35x35
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(96),
             nn.MaxPool2d(3, stride = 2),  # 96x17x17
@@ -32,7 +32,7 @@ class Siamese(nn.Module):
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 8))
+            nn.Linear(4096, 7))
 
         #self.liner = nn.Sequential(nn.Linear(9216, 4096), nn.Sigmoid())
         #self.out = nn.Linear(4096, 1)
