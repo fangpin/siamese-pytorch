@@ -27,12 +27,12 @@ def matplotlib_imshow(img, one_channel=False):
     if one_channel:
         img = img.mean(dim=0)
     img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
+    npimg = img.cpu().numpy()
     if one_channel:
         plt.imshow(npimg, cmap="Greys")
     else:
         plt.imshow(np.transpose(npimg, (1, 2, 0)))
-        
+
 def images_to_probs(net, images):
     '''
     Generates predictions and corresponding probabilities from a trained
