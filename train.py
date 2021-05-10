@@ -40,6 +40,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
     epoch_loss = 0
     epoch_acc = 0
 
+    model.to(device)
     model.eval()
     with torch.no_grad():
         for train_batch_id, batch in enumerate(val_dataloader):
@@ -78,7 +79,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
     """
     epoch_loss = 0
     epoch_acc = 0
-
+    model.to(device)
     model.train()
 
     for batch_idx, batch in enumerate(train_dataloader):
@@ -214,7 +215,7 @@ def main():
 
     # Load CIFAR10 dataset
     n_classes = 7
-
+    """
     model = Siamese()
     model.apply(initialize_parameters)
 
@@ -243,7 +244,6 @@ def main():
 
     for epoch in range(1, args.epochs + 1):
         start_time = time.monotonic()
-        model.to(device)
         best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
         end_time = time.monotonic()
 
@@ -252,10 +252,14 @@ def main():
 
     # Evaluate on test set
     writer.flush()
-
+    """
     model = Siamese()
     model.load_state_dict(torch.load(args.model_name+ '.pth'))
     model.to(device)
+    criterion = nn.CrossEntropyLoss()
+
+    criterion = criterion.to(device)
+
     loss, acc = evaluate(args, model, test_dataloader, criterion, device)
     print("TEST RESULTS: ", loss, acc)
 
