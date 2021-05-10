@@ -26,10 +26,16 @@ classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
 def matplotlib_imshow(img, one_channel=False):
     if one_channel:
         img = img.mean(dim=0)
-    img = img / 2 + 0.5     # unnormalize
+    image_min = img.min()
+    image_max = img.max()
+    img.clamp_(min=image_min, max=image_max)
+    img.add_(-image_min).div_(image_max - image_min + 1e-5)
+
+    #img = img / 2 + 0.5     # unnormalize
     npimg = img.cpu().numpy()
     if one_channel:
         plt.imshow(npimg, cmap="Greys")
+        print("ONE CHANNEL!")
     else:
         plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
@@ -58,7 +64,7 @@ def plot_classes_preds(net, images, labels):
     fig = plt.figure(figsize=(12, 48))
     for idx in np.arange(4):
         ax = fig.add_subplot(1, 4, idx+1, xticks=[], yticks=[])
-        matplotlib_imshow(images[idx], one_channel=True)
+        matplotlib_imshow(images[idx], one_channel=False)
         ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
             classes[preds[idx]],
             probs[idx] * 100.0,
