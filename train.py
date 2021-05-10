@@ -49,9 +49,6 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_label = batch['label']
             train_input = train_input.to(device)
             train_label = train_label.to(device)
-            if(not train_input.is_cuda) or (not train_label.is_cuda):
-                print("NOT ON GPU!")
-            print(next(model.parameters()).device)
             y_pred = model(train_input)
             loss = criterion(y_pred, train_label)
             acc = calculate_accuracy(y_pred, train_label)
@@ -102,7 +99,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
                 # Saving State Dict
-                torch.save(model.state_dict(), args.model_name+ '.pth')
+                torch.save(model.state_dict(), 'results/' + args.model_name + '/' + args.model_name+ '.pth')
 
             args.train_loss.append(loss.item())
             args.val_loss.append(val_loss)
@@ -165,7 +162,7 @@ def main():
                         help='Weight decay hyperparameter')
     args = parser.parse_args()
     # set seed
-    writer = SummaryWriter('runs/' + args.model_name)
+    writer = SummaryWriter('results/' + args.model_name)
 
     SEED = 1234
 
@@ -218,8 +215,7 @@ def main():
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
     # Load CIFAR10 dataset
-    n_classes = 7
-    """
+
     model = Siamese()
     model.apply(initialize_parameters)
 
@@ -256,7 +252,8 @@ def main():
 
     # Evaluate on test set
     writer.flush()
-    """
+
+
     model = Siamese()
     model.load_state_dict(torch.load(args.model_name+ '.pth'))
     model.to(device)
