@@ -20,7 +20,9 @@ from model import Siamese
 import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 best_valid_loss = float('inf')
+
 def calculate_accuracy(y_pred, y):
     top_pred = y_pred.argmax(1, keepdim=True)
     correct = top_pred.eq(y.view_as(top_pred)).sum()
