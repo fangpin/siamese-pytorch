@@ -211,7 +211,7 @@ def main():
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
     # Load CIFAR10 dataset
-
+    """
     model = Siamese()
     model.apply(initialize_parameters)
 
@@ -248,7 +248,7 @@ def main():
 
     # Evaluate on test set
     writer.flush()
-
+    """
 
     model = Siamese()
     model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
