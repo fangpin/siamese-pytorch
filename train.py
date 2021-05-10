@@ -240,7 +240,7 @@ def main():
     for epoch in range(1, args.epochs + 1):
         start_time = time.monotonic()
 
-        train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device)
+        train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer)
         end_time = time.monotonic()
 
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
