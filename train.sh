@@ -1,1 +1,1 @@
-python3 train.py --dataset-dir dataset/in_domain_dataset --model-name baseline-01 --epochs 20 --log-interval 30 --lr 6e-3 --batch-size 64
+python3 train.py --dataset-dir dataset/in_domain_dataset --model-name baseline-02 --epochs 20 --log-interval 30 --lr 5e-4 --batch-size 64
