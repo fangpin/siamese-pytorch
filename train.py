@@ -21,7 +21,6 @@ import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-best_valid_loss = float('inf')
 
 def calculate_accuracy(y_pred, y):
     top_pred = y_pred.argmax(1, keepdim=True)
@@ -61,7 +60,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
     return epoch_loss / 3., epoch_acc / 3.
 
 
-def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer):
+def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss):
     """
     Train the model for one epoch.
     Arguments:
@@ -237,12 +236,12 @@ def main():
     args.val_acc = []
 
     # Train the model
-
+    best_valid_loss = float('inf')
 
     for epoch in range(1, args.epochs + 1):
         start_time = time.monotonic()
 
-        train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer)
+        best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
         end_time = time.monotonic()
 
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
