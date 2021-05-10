@@ -209,6 +209,10 @@ def main():
     val_set = ImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
+    print("trainset: ",len(train_set))
+    print("val: ",len(val_set))
+    print("testset: ",len(test_set))
+
     train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
     val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True)
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
