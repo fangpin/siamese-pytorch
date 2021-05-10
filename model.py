@@ -9,29 +9,30 @@ class Siamese(nn.Module):
     def __init__(self):
         super(Siamese, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 64, 17),  # 64@96*96
+            nn.Conv2d(1, 96, 94),  # 96x35x35
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(64),
-            nn.MaxPool2d(2, stride = 2),  # 64@48*48
-            nn.Conv2d(64, 128, 7),
-            nn.ReLU(),    # 128@42*42
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(2, stride = 2),   # 128@21*21
-            nn.Conv2d(128, 128, 4),
+            nn.BatchNorm2d(96),
+            nn.MaxPool2d(3, stride = 2),  # 96x17x17
+            nn.Conv2d(96, 256, 7, stride = 1, padding= 3),
+            nn.ReLU(),    # 256x17x17
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(3, stride = 2),   # 256x8x8
+            nn.Conv2d(256, 384, 5, padding = 2, stride = 1), #384x8x8
             nn.ReLU(), # 128@18*18
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(2, stride = 2), # 128@9*9
-            nn.Conv2d(128, 256, 4),
-            nn.ReLU(),   # 256@6*6
+            nn.BatchNorm2d(384),
+            nn.Conv2d(384, 256, 5, padding=2, stride=1), #256x8x8
+            nn.ReLU(),  # 128@18*18
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(2, stride = 2), # 256x4x4
         )
         self.fc1 = nn.Sequential(
-            nn.Linear(256*6*6, 4096),
+            nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 1000),
+            nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
 
-            nn.Linear(1000, 7))
+            nn.Linear(4096, 8))
 
         #self.liner = nn.Sequential(nn.Linear(9216, 4096), nn.Sigmoid())
         #self.out = nn.Linear(4096, 1)
