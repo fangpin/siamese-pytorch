@@ -48,6 +48,8 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_label = batch['label']
             train_input = train_input.to(device)
             train_label = train_label.to(device)
+            if(not train_input.is_cuda) or (not train_label.is_cuda) or (not model.is_cuda):
+                print("NOT ON GPU!")
             y_pred = model(train_input)
             loss = criterion(y_pred, train_label)
             acc = calculate_accuracy(y_pred, train_label)
