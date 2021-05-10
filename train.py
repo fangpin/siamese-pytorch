@@ -119,7 +119,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
             break
     # return epoch_loss / len(train_dataloader), epoch_acc / len(train_dataloader)
     # return epoch_loss / 3., epoch_acc / 3.
-
+    return best_valid_loss
 class SquarePad:
     def __call__(self, image):
         w, h = image.size
