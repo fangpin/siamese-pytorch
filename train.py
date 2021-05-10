@@ -99,7 +99,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
                 # Saving State Dict
-                torch.save(model.state_dict(), 'results/' + args.model_name + '/' + args.model_name+ '.pth')
+                torch.save(model.state_dict(), 'runs/' + args.model_name + '/' + args.model_name + '.pth')
 
             args.train_loss.append(loss.item())
             args.val_loss.append(val_loss)
@@ -162,7 +162,7 @@ def main():
                         help='Weight decay hyperparameter')
     args = parser.parse_args()
     # set seed
-    writer = SummaryWriter('results/' + args.model_name)
+    writer = SummaryWriter('runs/' + args.model_name)
 
     SEED = 1234
 
@@ -255,7 +255,7 @@ def main():
 
 
     model = Siamese()
-    model.load_state_dict(torch.load(args.model_name+ '.pth'))
+    model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
     model.to(device)
     criterion = nn.CrossEntropyLoss()
 
