@@ -44,7 +44,6 @@ def evaluate(args, model, val_dataloader, criterion, device):
     model.eval()
     with torch.no_grad():
         for train_batch_id, batch in enumerate(val_dataloader):
-            print("hello", train_batch_id)
             train_input = batch['image']
             train_label = batch['label']
             train_input = train_input.to(device)
@@ -55,10 +54,9 @@ def evaluate(args, model, val_dataloader, criterion, device):
 
             epoch_loss += loss.item()
             epoch_acc += acc.item()
-            if train_batch_id >= 2:
-                break
-    # return epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
-    return epoch_loss / 3., epoch_acc / 3.
+
+    return epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
+    #return epoch_loss / 3., epoch_acc / 3.
 
 
 def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss):
@@ -80,7 +78,6 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
     model.train()
 
     for batch_idx, batch in enumerate(train_dataloader):
-        print("hello", batch_idx)
         train_inputs = batch['image']
         train_label = batch['label']
         train_inputs = train_inputs.to(device)
@@ -110,14 +107,13 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                        100. * batch_idx / len(train_dataloader), loss.item(), val_loss, val_acc))
             writer.add_scalar('training loss',
                             epoch_loss/args.log_interval,
-                              (epoch-1) * 3 + batch_idx)
+                              (epoch-1) * len(train_dataloader) + batch_idx)
             writer.add_scalar('val accuracy',
                             val_acc,
-                              (epoch-1) * 3 + batch_idx)
+                              (epoch-1) * len(train_dataloader) + batch_idx)
             epoch_loss = 0.0
 
-        if batch_idx >= 2:
-            break
+
     # return epoch_loss / len(train_dataloader), epoch_acc / len(train_dataloader)
     # return epoch_loss / 3., epoch_acc / 3.
     return best_valid_loss
