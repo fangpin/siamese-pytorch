@@ -1,0 +1,18 @@
+name: vi-sum
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - pip=20.3.1
+  - python=3.6.8
+  - pytorch=1.7.1
+  - numpy
+  - tqdm
+  - pip:
+    - torch==1.7.1
+    - tqdm==4.49.0
+    - transformers==4.2.2
+    - tensorboard
+    - tensorflow
+    - tensorboardX
+
