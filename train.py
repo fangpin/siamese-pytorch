@@ -212,6 +212,8 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--weight-decay', type=float, default=0.0,
                         help='Weight decay hyperparameter')
+    parser.add_argument('--continue-train', type=str,  default='NONE',
+                        help='saves the current model')
     args = parser.parse_args()
     # set seed
     writer = SummaryWriter('runs/' + args.model_name)
@@ -267,56 +269,91 @@ def main():
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
     # Load CIFAR10 dataset
+    if(args.continue_train == "NONE"):
+        model = Siamese()
+        model.apply(initialize_parameters)
 
-    model = Siamese()
-    model.apply(initialize_parameters)
+        def count_parameters(model):
+            return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    def count_parameters(model):
-        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+        print(f'The model has {count_parameters(model):,} trainable parameters')
 
-    print(f'The model has {count_parameters(model):,} trainable parameters')
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        criterion = nn.CrossEntropyLoss()
+        model.to(device)
+        criterion = criterion.to(device)
+        model.train()
+        optimizer.zero_grad()
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    criterion = nn.CrossEntropyLoss()
-    model.to(device)
-    criterion = criterion.to(device)
-    model.train()
-    optimizer.zero_grad()
+        # Define optimizer
+        #opt = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-    # Define optimizer
-    #opt = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+        # Record loss and accuracy history
+        args.train_loss = []
+        args.val_loss = []
+        args.val_acc = []
 
-    # Record loss and accuracy history
-    args.train_loss = []
-    args.val_loss = []
-    args.val_acc = []
+        # Train the model
+        best_valid_loss = float('inf')
 
-    # Train the model
-    best_valid_loss = float('inf')
+        for epoch in range(1, args.epochs + 1):
+            start_time = time.monotonic()
+            best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
+            end_time = time.monotonic()
 
-    for epoch in range(1, args.epochs + 1):
-        start_time = time.monotonic()
-        best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
-        end_time = time.monotonic()
+            epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+            print(f'Epoch: {epoch :02} | Epoch Time: {epoch_mins}m {epoch_secs}s')
 
-        epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-        print(f'Epoch: {epoch :02} | Epoch Time: {epoch_mins}m {epoch_secs}s')
+        # Evaluate on test set
+        writer.flush()
+    else:
+        model = Siamese()
+        model.load_state_dict(torch.load('runs/' + args.continue_train + '/' + args.continue_train + '.pth'))
 
-    # Evaluate on test set
-    writer.flush()
+        def count_parameters(model):
+            return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+        print(f'The model has {count_parameters(model):,} trainable parameters')
 
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        criterion = nn.CrossEntropyLoss()
+        model.to(device)
+        criterion = criterion.to(device)
+        model.train()
+        optimizer.zero_grad()
+
+        # Define optimizer
+        # opt = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
+
+        # Record loss and accuracy history
+        args.train_loss = []
+        args.val_loss = []
+        args.val_acc = []
+
+        # Train the model
+        best_valid_loss = float('inf')
+
+        for epoch in range(1, args.epochs + 1):
+            start_time = time.monotonic()
+            best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device,
+                                    writer, best_valid_loss)
+            end_time = time.monotonic()
+
+            epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+            print(f'Epoch: {epoch :02} | Epoch Time: {epoch_mins}m {epoch_secs}s')
+
+        # Evaluate on test set
+        writer.flush()
+
+    #test time
     model = Siamese()
     model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
     model.to(device)
     criterion = nn.CrossEntropyLoss()
-
     criterion = criterion.to(device)
 
     loss, acc = evaluate(args, model, test_dataloader, criterion, device)
     print("TEST RESULTS: ", loss, acc)
-
-
 
 if __name__ == '__main__':
     main()
