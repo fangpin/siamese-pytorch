@@ -13,8 +13,12 @@ import random
 import time
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
-
+from sklearn import decomposition
+from sklearn import manifold
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+import itertools
 import os
 
 from model import Siamese
@@ -22,6 +26,76 @@ import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
+
+#https://github.com/javaidnabi31/Multi-class-with-imbalanced-dataset-classification/blob/master/20-news-group-classification.ipynb
+def plot_confusion_matrix(args, cm, l_classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    fig = plt.figure()
+    fig.set_size_inches(14, 12, forward=True)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    # print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(l_classes))
+    plt.xticks(tick_marks, l_classes, rotation=90)
+    plt.yticks(tick_marks, l_classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+    plt.savefig('runs/' + args.model_name + '/' + args.model_name + '-confusion.png')
+
+def get_predictions(args, model, iterator, device):
+
+    model.eval()
+    model.to(device)
+    images = []
+    labels = []
+    probs = []
+
+    with torch.no_grad():
+
+        for train_batch_id, batch in enumerate(iterator):
+            train_input = batch['image']
+            train_label = batch['label']
+            train_input = train_input.to(device)
+            train_label = train_label.to(device)
+
+            #y_pred, _ = model(x)
+            y_pred = model(train_input)
+            y_prob = Function.softmax(y_pred, dim = -1)
+            top_pred = y_prob.argmax(1, keepdim = True)
+
+            images.append(train_input.cpu())
+            labels.append(train_label.cpu())
+            probs.append(y_prob.cpu())
+
+    images = torch.cat(images, dim = 0)
+    labels = torch.cat(labels, dim = 0)
+    probs = torch.cat(probs, dim = 0)
+
+    return images, labels, probs
 
 def matplotlib_imshow(img, one_channel=False):
     if one_channel:
@@ -214,9 +288,10 @@ def main():
                         help='Weight decay hyperparameter')
     parser.add_argument('--continue-train', type=str,  default='NONE',
                         help='saves the current model')
+    parser.add_argument('--examine', default=False, action='store_true')
+
     args = parser.parse_args()
     # set seed
-    writer = SummaryWriter('runs/' + args.model_name)
 
     SEED = 1234
 
@@ -269,47 +344,31 @@ def main():
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
     # Load CIFAR10 dataset
-    if(args.continue_train == "NONE"):
+    if(args.examine == True):
         model = Siamese()
-        model.apply(initialize_parameters)
-
-        def count_parameters(model):
-            return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-        print(f'The model has {count_parameters(model):,} trainable parameters')
-
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        criterion = nn.CrossEntropyLoss()
+        model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
-        criterion = criterion.to(device)
-        model.train()
-        optimizer.zero_grad()
 
-        # Define optimizer
-        #opt = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-
-        # Record loss and accuracy history
-        args.train_loss = []
-        args.val_loss = []
-        args.val_acc = []
-
-        # Train the model
-        best_valid_loss = float('inf')
-
-        for epoch in range(1, args.epochs + 1):
-            start_time = time.monotonic()
-            best_valid_loss = train(args, epoch, model, train_dataloader, val_dataloader, optimizer, criterion, device, writer, best_valid_loss)
-            end_time = time.monotonic()
-
-            epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-            print(f'Epoch: {epoch :02} | Epoch Time: {epoch_mins}m {epoch_secs}s')
-
-        # Evaluate on test set
-        writer.flush()
+        images, labels, probs = get_predictions(args, model, test_dataloader, device)
+        pred_labels = torch.argmax(probs, 1)
+        cm = confusion_matrix(labels, pred_labels)
+        #plot_confusion_matrix(args, labels, pred_labels)
+        plot_confusion_matrix(args, cm, l_classes=np.asarray(classes), normalize=True,
+                      title='Normalized confusion matrix')
+        print("done!")
     else:
-        model = Siamese()
-        model.load_state_dict(torch.load('runs/' + args.continue_train + '/' + args.continue_train + '.pth'))
 
+        writer = SummaryWriter('runs/' + args.model_name)
+
+        if(args.continue_train == "NONE"):
+            model = Siamese()
+            model.apply(initialize_parameters)
+
+        else:
+
+            model = Siamese()
+            model.load_state_dict(torch.load('runs/' + args.continue_train + '/' + args.continue_train + '.pth'))
+            print("CONTINUE TRAIN MODE----")
         def count_parameters(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
@@ -345,15 +404,15 @@ def main():
         # Evaluate on test set
         writer.flush()
 
-    #test time
-    model = Siamese()
-    model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
-    model.to(device)
-    criterion = nn.CrossEntropyLoss()
-    criterion = criterion.to(device)
+        #test time
+        model = Siamese()
+        model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
+        model.to(device)
+        criterion = nn.CrossEntropyLoss()
+        criterion = criterion.to(device)
 
-    loss, acc = evaluate(args, model, test_dataloader, criterion, device)
-    print("TEST RESULTS: ", loss, acc)
+        loss, acc = evaluate(args, model, test_dataloader, criterion, device)
+        print("TEST RESULTS: ", loss, acc)
 
 if __name__ == '__main__':
     main()
