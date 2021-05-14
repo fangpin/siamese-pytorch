@@ -179,7 +179,8 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_label = train_label.to(device)
 
             task_A_pred, task_B_pred = model(train_inputs)
-
+            criterion[0] = criterion[0].to(device)
+            criterion[1] = criterion[1].to(device)
             loss_A = criterion[0](task_A_pred, train_label[0])
             loss_B = criterion[1](task_B_pred, train_label[1])
             loss = loss_A + loss_B
@@ -224,6 +225,10 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         optimizer.zero_grad()
 
         task_A_pred, task_B_pred = model(train_inputs)
+
+        criterion[0] = criterion[0].to(device)
+        criterion[1] = criterion[1].to(device)
+
 
         loss_A = criterion[0](task_A_pred, train_label[0])
         loss_B = criterion[1](task_B_pred, train_label[1])
@@ -422,7 +427,7 @@ def main():
         Loss_B = Multi_cross_entropy()
         criterion = [nn.CrossEntropyLoss(), Loss_B]
         model.to(device)
-        criterion = criterion.to(device)
+        #criterion = criterion.to(device)
         model.train()
         optimizer.zero_grad()
 
