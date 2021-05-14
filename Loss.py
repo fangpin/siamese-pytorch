@@ -5,7 +5,7 @@ import numpy
 
 class Multi_cross_entropy(nn.Module):
     def __init__(self):
-        super(Loss_A, self).__init__()
+        super(Multi_cross_entropy, self).__init__()
 
     def forward(self, pred, soft_targets):
 
