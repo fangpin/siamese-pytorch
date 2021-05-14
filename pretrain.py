@@ -65,7 +65,7 @@ def plot_confusion_matrix(args, cm, l_classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
-    plt.savefig('runs/' + args.model_name + '/' + args.model_name + '-confusion.png')
+    plt.savefig('runs_pretrained/' + args.model_name + '/' + args.model_name + '-confusion.png')
 
 def get_predictions(args, model, iterator, device):
 
@@ -244,7 +244,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
                 # Saving State Dict
-                torch.save(model.state_dict(), 'runs/' + args.model_name + '/' + args.model_name + '-pretrained.pth')
+                torch.save(model.state_dict(), 'runs_pretrained/' + args.model_name + '/' + args.model_name + '-pretrained.pth')
 
             args.train_loss.append(loss.item())
             args.val_loss.append(val_loss)
@@ -390,7 +390,7 @@ def main():
     # Load CIFAR10 dataset
     if(args.examine == True):
         model = Siamese()
-        model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
+        model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
 
         images, labels, probs = get_predictions(args, model, test_dataloader, device)
