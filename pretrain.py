@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
-from dataset_utils import ImageDataset
+from dataset_utils import PretrainImageDataset
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
 import torch.nn.functional as Function
@@ -23,9 +23,10 @@ import os
 
 from model import Siamese
 import pandas as pd
+from Loss import Multi_cross_entropy
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
+classes = ['ONE_CLASS','TWO_CLASS','THREE_CLASS']
 
 #https://github.com/javaidnabi31/Multi-class-with-imbalanced-dataset-classification/blob/master/20-news-group-classification.ipynb
 def plot_confusion_matrix(args, cm, l_classes,
@@ -164,23 +165,30 @@ def epoch_time(start_time, end_time):
 def evaluate(args, model, val_dataloader, criterion, device):
     epoch_loss = 0
     epoch_acc = 0
-
+    loss_A = 0
+    loss_B = 0
     model.to(device)
     model.eval()
     with torch.no_grad():
         for train_batch_id, batch in enumerate(val_dataloader):
-            train_input = batch['image']
+            train_inputs = batch['image']
+
             train_label = batch['label']
-            train_input = train_input.to(device)
+
+            train_inputs = train_inputs.to(device)
             train_label = train_label.to(device)
-            y_pred = model(train_input)
-            loss = criterion(y_pred, train_label)
-            acc = calculate_accuracy(y_pred, train_label)
+
+            task_A_pred, task_B_pred = model(train_inputs)
+
+            loss_A = criterion[0](task_A_pred, train_label[0])
+            loss_B = criterion[1](task_B_pred, train_label[1])
+            loss = loss_A + loss_B
+            acc = calculate_accuracy(task_A_pred, train_label[0])
 
             epoch_loss += loss.item()
             epoch_acc += acc.item()
 
-    return epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
+    return loss_A/ len(val_dataloader) , loss_B/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
     #return epoch_loss / 3., epoch_acc / 3.
 
 
@@ -198,41 +206,73 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         opt: optimizer
     """
     epoch_loss = 0
+    A_loss = 0
+    B_loss = 0
+
     epoch_acc = 0
     model.to(device)
     model.train()
 
     for batch_idx, batch in enumerate(train_dataloader):
         train_inputs = batch['image']
+
         train_label = batch['label']
+
         train_inputs = train_inputs.to(device)
         train_label = train_label.to(device)
+
         optimizer.zero_grad()
-        y_pred = model(train_inputs)
-        loss = criterion(y_pred, train_label)
-        acc = calculate_accuracy(y_pred, train_label)
+
+        task_A_pred, task_B_pred = model(train_inputs)
+
+        loss_A = criterion[0](task_A_pred, train_label[0])
+        loss_B = criterion[1](task_B_pred, train_label[1])
+        loss = loss_A + loss_B
+
+
+        #loss = criterion(y_pred, train_label)
+        acc = calculate_accuracy(task_A_pred, train_label[0])
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
+        A_loss += loss_A.item()
+        B_loss += loss_B.item()
         epoch_acc += acc.item()
         if batch_idx % args.log_interval == args.log_interval-1:
-            val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
+            val_loss_A, val_loss_B, val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
             if val_loss < best_valid_loss:
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
                 # Saving State Dict
-                torch.save(model.state_dict(), 'runs/' + args.model_name + '/' + args.model_name + '.pth')
+                torch.save(model.state_dict(), 'runs/' + args.model_name + '/' + args.model_name + '-pretrained.pth')
 
             args.train_loss.append(loss.item())
             args.val_loss.append(val_loss)
             args.val_acc.append(val_acc)
             print('Train Epoch: {} [{}/{} ({:.2f}%)]\t'
-                  'Train Loss: {:.2f} Train Acc: {:.2f}%  Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
+                  'Train Task A Loss: {:.2f} Train Task B Loss: {:.2f} Train Loss: {:.2f} Train T-A Acc: {:.2f}%  Validation Task A Loss: {:.2f} Validation Task B Loss: {:.2f} Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
                 epoch, batch_idx * len(train_inputs), len(train_dataloader.dataset),
-                       100. * batch_idx / len(train_dataloader), epoch_loss/args.log_interval, epoch_acc/args.log_interval, val_loss, val_acc))
-            writer.add_scalar('training loss',
-                            epoch_loss/args.log_interval,
+                       100. * batch_idx / len(train_dataloader), A_loss/args.log_interval, B_loss/args.log_interval, epoch_loss/args.log_interval, epoch_acc/args.log_interval, val_loss_A, val_loss_B, val_loss, val_acc))
+            writer.add_scalar('Task A training loss',
+                            A_loss/args.log_interval,
                               (epoch-1) * len(train_dataloader) + batch_idx)
+            writer.add_scalar('Task B training loss',
+                              B_loss / args.log_interval,
+                              (epoch - 1) * len(train_dataloader) + batch_idx)
+            writer.add_scalar('combined training loss',
+                              epoch_loss / args.log_interval,
+                              (epoch - 1) * len(train_dataloader) + batch_idx)
+
+            writer.add_scalar('Task A val loss',
+                              val_loss_A,
+                              (epoch - 1) * len(train_dataloader) + batch_idx)
+
+            writer.add_scalar('Task B val loss',
+                              epoch_loss / args.log_interval,
+                              (epoch - 1) * len(train_dataloader) + batch_idx)
+            writer.add_scalar('combined val loss',
+                              epoch_loss / args.log_interval,
+                              (epoch - 1) * len(train_dataloader) + batch_idx)
             writer.add_scalar('val accuracy',
                             val_acc,
                               (epoch-1) * len(train_dataloader) + batch_idx)
@@ -241,6 +281,9 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                               global_step= (epoch - 1) * len(train_dataloader) + batch_idx)
 
             epoch_loss = 0.0
+            A_loss = 0.0
+            B_loss = 0.0
+
             epoch_acc = 0.0
 
 
@@ -268,7 +311,7 @@ def initialize_parameters(m):
 
 def main():
     # Training settings
-    parser = argparse.ArgumentParser(description='EMOTION CLASSIFICATION')
+    parser = argparse.ArgumentParser(description='PRETRAINED EMOTION CLASSIFICATION')
     parser.add_argument('--batch-size', type=int, metavar='N',
                         help='input batch size for training')
     parser.add_argument('--dataset-dir', default='data',
@@ -303,13 +346,13 @@ def main():
 
 
     train_imgs_dir = os.path.join(args.dataset_dir, "train")
-    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/train_label.csv"))
+    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "newlabels.csv"))
 
-    val_imgs_dir = os.path.join(args.dataset_dir, "val")
-    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/val_label.csv"))
+    val_imgs_dir = os.path.join(args.dataset_dir, "test")
+    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "testnewlabels.csv"))
 
-    test_imgs_dir = os.path.join(args.dataset_dir, "test")
-    test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
+    #test_imgs_dir = os.path.join(args.dataset_dir, "test")
+    #test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
 
     training_data_transform = T.Compose([
         T.ToPILImage("RGB"),
@@ -331,17 +374,18 @@ def main():
                     std=[0.229, 0.224, 0.225]),
     ])
 
-    train_set = ImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
-    val_set = ImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
-    test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
+    train_set = PretrainImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
+    val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
+    #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
     print("trainset: ",len(train_set))
     print("val: ",len(val_set))
-    print("testset: ",len(test_set))
+    #print("testset: ",len(test_set))
 
     train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
     val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True)
-    test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+    #test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+    test_dataloader = None
 
     # Load CIFAR10 dataset
     if(args.examine == True):
@@ -358,7 +402,7 @@ def main():
         print("done!")
     else:
 
-        writer = SummaryWriter('runs/' + args.model_name)
+        writer = SummaryWriter('runs_pretrained/' + args.model_name)
 
         if(args.continue_train == "NONE"):
             model = Siamese()
@@ -367,7 +411,7 @@ def main():
         else:
 
             model = Siamese()
-            model.load_state_dict(torch.load('runs/' + args.continue_train + '/' + args.continue_train + '.pth'))
+            model.load_state_dict(torch.load('runs_pretrained/' + args.continue_train + '/' + args.continue_train + '.pth'))
             print("CONTINUE TRAIN MODE----")
         def count_parameters(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -375,7 +419,8 @@ def main():
         print(f'The model has {count_parameters(model):,} trainable parameters')
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        criterion = nn.CrossEntropyLoss()
+        Loss_B = Multi_cross_entropy()
+        criterion = [nn.CrossEntropyLoss(), Loss_B]
         model.to(device)
         criterion = criterion.to(device)
         model.train()
@@ -403,16 +448,18 @@ def main():
 
         # Evaluate on test set
         writer.flush()
-
+        """
         #test time
         model = Siamese()
-        model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
+        model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
-        criterion = nn.CrossEntropyLoss()
+        Loss_B = Multi_cross_entropy()
+        criterion = [nn.CrossEntropyLoss(), Loss_B]
         criterion = criterion.to(device)
 
         loss, acc = evaluate(args, model, test_dataloader, criterion, device)
         print("TEST RESULTS: ", loss, acc)
+        """
 
 if __name__ == '__main__':
     main()
