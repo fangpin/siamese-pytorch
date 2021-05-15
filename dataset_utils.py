@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 import torchvision.transforms as T
 from torchvision.io import read_image
 import json
+from PIL import Image
 
 class ImageDataset(Dataset):
     def __init__(self, labels, img_dir, transform=None, target_transform=None):
@@ -47,9 +48,14 @@ class PretrainImageDataset(Dataset):
         img_2_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 1])
         img_3_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 2])
 
-        image_1 = read_image(img_1_path)
-        image_2 = read_image(img_2_path)
-        image_3 = read_image(img_3_path)
+        #image_1 = read_image(img_1_path)
+        image_1 = Image.open(img_1_path)
+        image_2 = Image.open(img_2_path)
+        image_3 = Image.open(img_3_path)
+
+
+        #image_2 = read_image(img_2_path)
+        #image_3 = read_image(img_3_path)
 
         label_A = self.img_labels.iloc[idx, 3]
         label_B = self.img_labels.iloc[idx, 4]
