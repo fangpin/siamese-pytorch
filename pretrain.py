@@ -175,8 +175,8 @@ def evaluate(args, model, val_dataloader, criterion, device):
 
             train_label = batch['label']
 
-            train_inputs = train_inputs.to(device)
-            train_label = train_label.to(device)
+            #train_inputs = train_inputs.to(device)
+            #train_label = train_label.to(device)
 
             train_inputs = torch.stack(train_inputs).to(device)
             train_label = torch.stack(train_label).to(device)
@@ -223,8 +223,8 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
 
         train_label = batch['label']
 
-        train_inputs = train_inputs.to(device)
-        train_label = train_label.to(device)
+        #train_inputs = train_inputs.to(device)
+        #train_label = train_label.to(device)
 
         train_inputs = torch.stack(train_inputs).to(device)
         train_label = torch.stack(train_label).to(device)
