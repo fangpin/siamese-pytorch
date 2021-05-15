@@ -190,7 +190,6 @@ def evaluate(args, model, val_dataloader, criterion, device):
             label_A = label_A.to(device)
             label_B = label_B.to(device)
 
-            #train_label = torch.stack(train_label).to(device)
 
 
             task_A_pred, task_B_pred = model(train_inputs)
