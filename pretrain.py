@@ -165,8 +165,8 @@ def epoch_time(start_time, end_time):
 def evaluate(args, model, val_dataloader, criterion, device):
     epoch_loss = 0
     epoch_acc = 0
-    loss_A = 0
-    loss_B = 0
+    A_loss = 0
+    B_loss = 0
     model.to(device)
     model.eval()
     print("Validating...")
@@ -200,12 +200,14 @@ def evaluate(args, model, val_dataloader, criterion, device):
             loss_A = criterion[0](task_A_pred, label_A)
             loss_B = criterion[1](task_B_pred, label_B)
             loss = loss_A + loss_B
+            A_loss += loss_A.item()
+            B_loss += loss_B.item()
             acc = calculate_accuracy(task_A_pred, label_A)
 
             epoch_loss += loss.item()
             epoch_acc += acc.item()
 
-    return loss_A/ len(val_dataloader) , loss_B/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
+    return A_loss/ len(val_dataloader) , B_loss/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
     #return epoch_loss / 3., epoch_acc / 3.
 
 
@@ -309,9 +311,9 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
             writer.add_scalar('val accuracy',
                             val_acc,
                               (epoch-1) * len(train_dataloader) + batch_idx)
-            writer.add_figure('predictions vs. actuals',
-                              plot_classes_preds(model, train_inputs, label_A),
-                              global_step= (epoch - 1) * len(train_dataloader) + batch_idx)
+            #writer.add_figure('predictions vs. actuals',
+            #                  plot_classes_preds(model, train_inputs, label_A),
+            #                  global_step= (epoch - 1) * len(train_dataloader) + batch_idx)
 
             epoch_loss = 0.0
             A_loss = 0.0
@@ -412,13 +414,15 @@ def main():
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
-    print("trainset: ",len(train_set))
-    print("val: ",len(val_set))
+
     #print("testset: ",len(test_set))
 
     train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=False, sampler=train_sample)
     val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, sampler=val_sample)
     #test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
+    print("trainset: ",len(train_dataloader))
+    print("val: ",len(val_dataloader))
+
     test_dataloader = None
 
     # Load CIFAR10 dataset
