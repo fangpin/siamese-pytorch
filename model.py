@@ -124,9 +124,10 @@ class Siamese(nn.Module):
         out3 = self.forward_one(x3)
         concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
         task_A_out = self.forward_task_A(concat)
-        task_B_out = self.forward_task_B(concat)
+        #task_B_out = self.forward_task_B(concat)
 
-        return task_A_out, task_B_out
+        #return task_A_out, task_B_out
+        return task_A_out
 
 # for test
 if __name__ == '__main__':
