@@ -309,7 +309,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
                             val_acc,
                               (epoch-1) * len(train_dataloader) + batch_idx)
             writer.add_figure('predictions vs. actuals',
-                              plot_classes_preds(model, train_inputs, train_label),
+                              plot_classes_preds(model, train_inputs, label_A),
                               global_step= (epoch - 1) * len(train_dataloader) + batch_idx)
 
             epoch_loss = 0.0
@@ -378,10 +378,10 @@ def main():
 
 
     train_imgs_dir = os.path.join(args.dataset_dir, "train")
-    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "newlabels.csv"))
+    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/train_labels.csv"))
 
     val_imgs_dir = os.path.join(args.dataset_dir, "test")
-    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "testnewlabels.csv"))
+    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_labels.csv"))
 
     #test_imgs_dir = os.path.join(args.dataset_dir, "test")
     #test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
