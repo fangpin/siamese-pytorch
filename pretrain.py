@@ -406,8 +406,9 @@ def main():
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
     ])
-
+    train_sample = np.random.choice(range(375588), 30000, replace=False)
     train_set = PretrainImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
+    val_sample = np.random.choice(range(23790), 3000, replace=False)
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
@@ -415,8 +416,8 @@ def main():
     print("val: ",len(val_set))
     #print("testset: ",len(test_set))
 
-    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
-    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True)
+    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=False, sampler=train_sample)
+    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, sampler=val_sample)
     #test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
     test_dataloader = None
 
