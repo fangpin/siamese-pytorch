@@ -50,8 +50,13 @@ class PretrainImageDataset(Dataset):
 
         #image_1 = read_image(img_1_path)
         image_1 = Image.open(img_1_path)
+        image_1 = image_1.convert("RGB")
+
         image_2 = Image.open(img_2_path)
+        image_2 = image_2.convert("RGB")
+
         image_3 = Image.open(img_3_path)
+        image_3 = image_3.convert("RGB")
 
 
         #image_2 = read_image(img_2_path)
