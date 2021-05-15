@@ -204,7 +204,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
             loss_B = 0.0
             loss = loss_A + loss_B
             A_loss += loss_A.item()
-            B_loss += loss_B.item()
+            #B_loss += loss_B.item()
             B_loss += loss_B
 
             acc = calculate_accuracy(task_A_pred, label_A)
