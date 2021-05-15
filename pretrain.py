@@ -169,12 +169,13 @@ def evaluate(args, model, val_dataloader, criterion, device):
     loss_B = 0
     model.to(device)
     model.eval()
+    print("Validating...")
+
     with torch.no_grad():
         for train_batch_id, batch in enumerate(val_dataloader):
             train_inputs_1 = batch['image_1']
             train_inputs_2 = batch['image_2']
             train_inputs_3 = batch['image_3']
-            print("WHATS WRONG")
 
             label_A = batch['label_A']
             label_B = batch['label_B']
