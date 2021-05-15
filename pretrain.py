@@ -174,6 +174,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_inputs_1 = batch['image_1']
             train_inputs_2 = batch['image_2']
             train_inputs_3 = batch['image_3']
+            print("WHATS WRONG")
 
             label_A = batch['label_A']
             label_B = batch['label_B']
