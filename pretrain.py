@@ -387,7 +387,7 @@ def main():
     #test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
 
     training_data_transform = T.Compose([
-        T.ToPILImage("RGB"),
+        #T.ToPILImage("RGB"),
         T.RandomRotation(5),
         T.RandomHorizontalFlip(0.5),
         # SquarePad(),
@@ -398,7 +398,7 @@ def main():
     ])
 
     test_data_transform = T.Compose([
-        T.ToPILImage("RGB"),
+        #T.ToPILImage("RGB"),
         # SquarePad(),
         T.Resize((128,128)),
         T.ToTensor(),
