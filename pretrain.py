@@ -223,13 +223,14 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
     for batch_idx, batch in enumerate(train_dataloader):
         train_inputs = batch['image']
 
-        train_label = batch['label']
+        label_A = batch['label_A']
+        label_B = batch['label_B']
+
 
         #train_inputs = train_inputs.to(device)
         #train_label = train_label.to(device)
 
         train_inputs = torch.stack(train_inputs).to(device)
-        label_A, label_B = train_label
         label_A = label_A.to(device)
         label_B = label_B.to(device)
 
