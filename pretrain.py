@@ -276,7 +276,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         optimizer.step()
         epoch_loss += loss.item()
         A_loss += loss_A.item()
-        B_loss += loss_B.item()
+        #B_loss += loss_B.item()
         B_loss += loss_B
 
         epoch_acc += acc.item()
