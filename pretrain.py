@@ -229,7 +229,11 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         #train_label = train_label.to(device)
 
         train_inputs = torch.stack(train_inputs).to(device)
-        train_label = train_label.to(device)
+        label_A, label_B = train_label
+        label_A = label_A.to(device)
+        label_B = label_B.to(device)
+
+        #train_label = train_label.to(device)
 
         # train_label = torch.stack(train_label).to(device)
 
@@ -241,13 +245,13 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         criterion[1] = criterion[1].to(device)
 
 
-        loss_A = criterion[0](task_A_pred, train_label[0])
-        loss_B = criterion[1](task_B_pred, train_label[1])
+        loss_A = criterion[0](task_A_pred, label_A)
+        loss_B = criterion[1](task_B_pred, label_B)
         loss = loss_A + loss_B
 
 
         #loss = criterion(y_pred, train_label)
-        acc = calculate_accuracy(task_A_pred, train_label[0])
+        acc = calculate_accuracy(task_A_pred, label_A)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
