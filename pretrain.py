@@ -229,7 +229,9 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         #train_label = train_label.to(device)
 
         train_inputs = torch.stack(train_inputs).to(device)
-        train_label = torch.stack(train_label).to(device)
+        train_label = train_label.to(device)
+
+        # train_label = torch.stack(train_label).to(device)
 
         optimizer.zero_grad()
 
