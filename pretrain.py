@@ -178,6 +178,10 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_inputs = train_inputs.to(device)
             train_label = train_label.to(device)
 
+            train_inputs = torch.stack(train_inputs).to(device)
+            train_label = torch.stack(train_label).to(device)
+
+
             task_A_pred, task_B_pred = model(train_inputs)
             criterion[0] = criterion[0].to(device)
             criterion[1] = criterion[1].to(device)
@@ -221,6 +225,9 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
 
         train_inputs = train_inputs.to(device)
         train_label = train_label.to(device)
+
+        train_inputs = torch.stack(train_inputs).to(device)
+        train_label = torch.stack(train_label).to(device)
 
         optimizer.zero_grad()
 
