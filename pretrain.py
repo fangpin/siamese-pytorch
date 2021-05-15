@@ -171,15 +171,24 @@ def evaluate(args, model, val_dataloader, criterion, device):
     model.eval()
     with torch.no_grad():
         for train_batch_id, batch in enumerate(val_dataloader):
-            train_inputs = batch['image']
+            train_inputs_1 = batch['image_1']
+            train_inputs_2 = batch['image_2']
+            train_inputs_3 = batch['image_3']
 
-            train_label = batch['label']
+            label_A = batch['label_A']
+            label_B = batch['label_B']
 
-            #train_inputs = train_inputs.to(device)
-            #train_label = train_label.to(device)
+            # train_inputs = train_inputs.to(device)
+            # train_label = train_label.to(device)
 
-            train_inputs = torch.stack(train_inputs).to(device)
-            train_label = train_label.to(device)
+            train_inputs_1 = train_inputs_1.to(device)
+            train_inputs_2 = train_inputs_2.to(device)
+            train_inputs_3 = train_inputs_3.to(device)
+
+            train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
+
+            label_A = label_A.to(device)
+            label_B = label_B.to(device)
 
             #train_label = torch.stack(train_label).to(device)
 
@@ -187,10 +196,10 @@ def evaluate(args, model, val_dataloader, criterion, device):
             task_A_pred, task_B_pred = model(train_inputs)
             criterion[0] = criterion[0].to(device)
             criterion[1] = criterion[1].to(device)
-            loss_A = criterion[0](task_A_pred, train_label[0])
-            loss_B = criterion[1](task_B_pred, train_label[1])
+            loss_A = criterion[0](task_A_pred, label_A)
+            loss_B = criterion[1](task_B_pred, label_B)
             loss = loss_A + loss_B
-            acc = calculate_accuracy(task_A_pred, train_label[0])
+            acc = calculate_accuracy(task_A_pred, label_A)
 
             epoch_loss += loss.item()
             epoch_acc += acc.item()
@@ -221,22 +230,24 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
     model.train()
 
     for batch_idx, batch in enumerate(train_dataloader):
-        train_inputs = batch['image']
+        train_inputs_1 = batch['image_1']
+        train_inputs_2 = batch['image_2']
+        train_inputs_3 = batch['image_3']
 
         label_A = batch['label_A']
         label_B = batch['label_B']
 
+        # train_inputs = train_inputs.to(device)
+        # train_label = train_label.to(device)
 
-        #train_inputs = train_inputs.to(device)
-        #train_label = train_label.to(device)
+        train_inputs_1 = train_inputs_1.to(device)
+        train_inputs_2 = train_inputs_2.to(device)
+        train_inputs_3 = train_inputs_3.to(device)
 
-        train_inputs = torch.stack(train_inputs).to(device)
+        train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
+
         label_A = label_A.to(device)
         label_B = label_B.to(device)
-
-        #train_label = train_label.to(device)
-
-        # train_label = torch.stack(train_label).to(device)
 
         optimizer.zero_grad()
 
