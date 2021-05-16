@@ -424,8 +424,8 @@ def main():
 
     #print("testset: ",len(test_set))
 
-    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=False, sampler=train_sample)
-    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, sampler=val_sample)
+    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, sampler=train_sample)
+    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True, sampler=val_sample)
     #test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
     print("trainset: ",len(train_dataloader))
     print("val: ",len(val_dataloader))
