@@ -78,12 +78,18 @@ class Siamese(nn.Module):
 
         self.task_A = nn.Sequential(
             nn.Linear(12288, 4096),
+            nn.BatchNorm1d(4096),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
             nn.Linear(4096, 2048),
+            nn.BatchNorm1d(2048),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
             nn.Linear(2048, 2048),
+            nn.BatchNorm1d(2048),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
             nn.Linear(2048, 3)
