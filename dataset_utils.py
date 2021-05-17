@@ -73,10 +73,12 @@ class PretrainImageDataset(Dataset):
 
         #if self.target_transform:
         #    label = self.target_transform(label)
+        """
         if(label_A == 2):
             label_A = 1
         else:
             label_A = 0
+        """
 
         sample = {"image_1": image_1, "image_2": image_2, "image_3": image_3, "label_A": label_A, "label_B": torch.FloatTensor(label_B)}
 
