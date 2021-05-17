@@ -421,8 +421,9 @@ def main():
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
-    test_datapoint = train_sample[0]
-    print(test_datapoint)
+    for i in range(5):  # or i, image in enumerate(dataset)
+        sample = train_set[i]  # or whatever your dataset returns
+        print(sample)
 
     #print("testset: ",len(test_set))
 
