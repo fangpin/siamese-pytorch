@@ -99,15 +99,21 @@ class Siamese(nn.Module):
 
         self.task_B = nn.Sequential(
             nn.Linear(12288, 4096),
+            nn.BatchNorm1d(4096),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 2048),
+            nn.Linear(4096, 4096),
+            nn.BatchNorm1d(4096),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
-            nn.Linear(2048, 2048),
+            nn.Linear(4096, 4096),
+            nn.BatchNorm1d(4096),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
 
-            nn.Linear(2048, 3)
+            nn.Linear(4096, 3)
         )
 
 
@@ -131,11 +137,11 @@ class Siamese(nn.Module):
         out2 = self.forward_one(x2)
         out3 = self.forward_one(x3)
         concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
-        task_A_out = self.forward_task_A(concat)
-        #task_B_out = self.forward_task_B(concat)
+        #task_A_out = self.forward_task_A(concat)
+        task_B_out = self.forward_task_B(concat)
 
         #return task_A_out, task_B_out
-        return task_A_out
+        return task_B_out
 
 # for test
 if __name__ == '__main__':
