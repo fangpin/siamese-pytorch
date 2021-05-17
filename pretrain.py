@@ -373,7 +373,7 @@ def main():
     parser.add_argument('--continue-train', type=str,  default='NONE',
                         help='saves the current model')
     parser.add_argument('--examine', default=False, action='store_true')
-
+    parser.add_argument('--visualize', default=False, action='store_true')
     args = parser.parse_args()
     # set seed
 
@@ -434,7 +434,27 @@ def main():
     test_dataloader = None
 
     # Load CIFAR10 dataset
-    if(args.examine == True):
+    if(args.visualize == True):
+        writer = SummaryWriter('runs_pretrained/' + args.model_name)
+        # plot the images in the batch, along with predicted and true labels
+        for i in range(5):
+            fig = plt.figure(figsize=(12, 48))
+
+            image1 = train_set[i]['image_1']
+            image2 = train_set[i]['image_2']
+            image3 = train_set[i]['image_3']
+            images = [image1, image2, image3]
+            label_A = train_set[i]['label_A']
+
+            for idx in np.arange(3):
+                ax = fig.add_subplot(1, 3, idx + 1, xticks=[], yticks=[])
+                matplotlib_imshow(images[idx], one_channel=False)
+                ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
+                    10.0,
+                    100.0,
+                    classes[label_A]))
+            writer.add_figure('predictions vs. actuals', fig)
+    elif (args.examine == True):
         model = Siamese()
         model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
