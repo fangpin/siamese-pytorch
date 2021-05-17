@@ -260,26 +260,26 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         optimizer.zero_grad()
 
         #task_A_pred, task_B_pred = model(train_inputs)
-        task_A_pred = model(train_inputs)
+        task_B_pred = model(train_inputs)
 
         criterion[0] = criterion[0].to(device)
         criterion[1] = criterion[1].to(device)
 
 
-        loss_A = criterion[0](task_A_pred, label_A)
-        #loss_B = criterion[1](task_B_pred, label_B)
-        loss_B = 0.0
+        #loss_A = criterion[0](task_A_pred, label_A)
+        loss_B = criterion[1](task_B_pred, label_B)
+        loss_A = 0.0
         loss = loss_A + loss_B
-        #loss = criterion(y_pred, train_label)
-        acc = calculate_accuracy(task_A_pred, label_A)
+        #acc = calculate_accuracy(task_A_pred, label_A)
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
-        A_loss += loss_A.item()
-        #B_loss += loss_B.item()
-        B_loss += loss_B
+        #A_loss += loss_A.item()
+        B_loss += loss_B.item()
+        A_loss += loss_A
 
-        epoch_acc += acc.item()
+        #epoch_acc += acc.item()
+        epoch_acc = 0.0
         if batch_idx % args.log_interval == args.log_interval-1:
             val_loss_A, val_loss_B, val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
             if val_loss < best_valid_loss:
