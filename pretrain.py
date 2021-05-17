@@ -422,7 +422,7 @@ def main():
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
     #test_datapoint = train_sample(idx = 0)["label_A"]
-    print(train_sample.size)
+    print(type(train_sample))
 
     #print("testset: ",len(test_set))
 
