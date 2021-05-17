@@ -426,6 +426,7 @@ def main():
     dict_  = {"0":[], "1":[]}
 
     for i in range(len(train_set)):  # or i, image in enumerate(dataset)
+        print(i)
         sample = train_set[i]  # or whatever your dataset returns
         if(sample['label_A'] == 0):
             dict_["0"].append(i)
