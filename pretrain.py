@@ -421,9 +421,19 @@ def main():
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
-    for i in range(5):  # or i, image in enumerate(dataset)
+
+    #test dataset
+    dict_  = {"0":[], "1":[]}
+
+    for i in range(len(train_set)):  # or i, image in enumerate(dataset)
         sample = train_set[i]  # or whatever your dataset returns
-        print(sample)
+        if(sample['label_A'] == 0):
+            dict_["0"].append(i)
+        else:
+            dict_["1"].append(i)
+
+    print(len(dict_["0"]))
+    print(len(dict_["1"]))
 
     #print("testset: ",len(test_set))
 
