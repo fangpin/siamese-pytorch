@@ -79,7 +79,7 @@ class Siamese(nn.Module):
             nn.ReLU(inplace=True))
 
         self.task_A = nn.Sequential(
-            nn.Linear(12288, 4096),
+            nn.Linear(4096, 4096),
             nn.BatchNorm1d(4096),
             nn.Dropout(0.5),
             nn.ReLU(inplace=True),
@@ -116,6 +116,10 @@ class Siamese(nn.Module):
             nn.Linear(4096, 3)
         )
 
+    def max_pooling_FC(self, x1, x2, x3):
+        max_1 = torch.maximum(x1, x2)
+        max = torch.maximum(max_1, x3)
+        return max
 
     def forward_one(self, x):
         x = self.conv(x)
@@ -123,25 +127,29 @@ class Siamese(nn.Module):
         x = self.fc1(x)
         return x
 
-    def forward_task_A(self, x):
-        x = self.task_A(x)
+    def forward_task_A(self, x1,x2,x3):
+        max = self.max_pooling_FC(x1, x2, x3)
+        x = self.task_A(max)
         return x
 
     def forward_task_B(self, x):
         x = self.task_B(x)
         return x
 
+
     def forward(self, x):#, x2):
         x1,x2,x3 = x
         out1 = self.forward_one(x1)
         out2 = self.forward_one(x2)
         out3 = self.forward_one(x3)
-        concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
-        #task_A_out = self.forward_task_A(concat)
-        task_B_out = self.forward_task_B(concat)
+
+        #concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
+
+        task_A_out = self.forward_task_A(out1, out2, out3)
+        #task_B_out = self.forward_task_B(concat)
 
         #return task_A_out, task_B_out
-        return task_B_out
+        return task_A_out
 
 # for test
 if __name__ == '__main__':
