@@ -279,7 +279,6 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         B_loss += loss_B
 
         epoch_acc += acc.item()
-        epoch_acc = 0.0
         if batch_idx % args.log_interval == args.log_interval-1:
             val_loss_A, val_loss_B, val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
             if val_loss < best_valid_loss:
