@@ -74,6 +74,8 @@ class Siamese(nn.Module):
         )
         self.fc1 = nn.Sequential(
             nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, 4096),
             nn.ReLU(inplace=True))
 
         self.task_A = nn.Sequential(
