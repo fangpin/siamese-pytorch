@@ -437,7 +437,7 @@ def main():
     if(args.visualize == True):
         writer = SummaryWriter('runs_pretrained/' + args.model_name)
         # plot the images in the batch, along with predicted and true labels
-        for i in range(5):
+        for i in range(30):
             fig = plt.figure(figsize=(12, 48))
 
             image1 = train_set[i]['image_1']
@@ -445,15 +445,17 @@ def main():
             image3 = train_set[i]['image_3']
             images = [image1, image2, image3]
             label_A = train_set[i]['label_A']
+            label_B = train_set[i]['label_B']
 
             for idx in np.arange(3):
                 ax = fig.add_subplot(1, 3, idx + 1, xticks=[], yticks=[])
                 matplotlib_imshow(images[idx], one_channel=False)
                 ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
-                    10.0,
-                    100.0,
+                    "percentage",
+                    label_B[idx],
                     classes[label_A]))
-            writer.add_figure('predictions vs. actuals', fig)
+            writer.add_figure('predictions vs. actuals', fig, global_step= i)
+
     elif (args.examine == True):
         model = Siamese()
         model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
@@ -526,6 +528,5 @@ def main():
         loss, acc = evaluate(args, model, test_dataloader, criterion, device)
         print("TEST RESULTS: ", loss, acc)
         """
-
 if __name__ == '__main__':
     main()
