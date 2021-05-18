@@ -199,15 +199,24 @@ def evaluate(args, model, val_dataloader, criterion, device):
 
             criterion[0] = criterion[0].to(device)
             criterion[1] = criterion[1].to(device)
-            loss_A = criterion[0](task_A_pred, label_A)
-            #loss_B = criterion[1](task_B_pred, label_B)
+
+            loss_A12 = criterion[0](task_A_pred[0], label_A)
+            loss_A23 = criterion[0](task_A_pred[1], label_A)
+            loss_A13 = criterion[0](task_A_pred[2], label_A)
+            loss_A = (loss_A12 + loss_A23 + loss_A13)
+            # loss_B = criterion[1](task_B_pred, label_B)
             loss_B = 0.0
             loss = loss_A + loss_B
+            acc = calculate_accuracy(task_A_pred[0], label_A)
+            acc += calculate_accuracy(task_A_pred[1], label_A)
+            acc += calculate_accuracy(task_A_pred[2], label_A)
+            acc /= 3.0
+
             A_loss += loss_A.item()
             #B_loss += loss_B.item()
             B_loss += loss_B
 
-            acc = calculate_accuracy(task_A_pred, label_A)
+            #acc = calculate_accuracy(task_A_pred, label_A)
 
             epoch_loss += loss.item()
             epoch_acc += acc.item()
