@@ -266,11 +266,18 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         criterion[1] = criterion[1].to(device)
 
 
-        loss_A = criterion[0](task_A_pred, label_A)
+        loss_A12 = criterion[0](task_A_pred[0], label_A)
+        loss_A23 = criterion[0](task_A_pred[1], label_A)
+        loss_A13 = criterion[0](task_A_pred[2], label_A)
+        loss_A = (loss_A12 + loss_A23 + loss_A13)
         #loss_B = criterion[1](task_B_pred, label_B)
         loss_B = 0.0
         loss = loss_A + loss_B
-        acc = calculate_accuracy(task_A_pred, label_A)
+        acc = calculate_accuracy(task_A_pred[0], label_A)
+        acc += calculate_accuracy(task_A_pred[1], label_A)
+        acc += calculate_accuracy(task_A_pred[2], label_A)
+        acc /= 3.0
+
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
@@ -387,10 +394,10 @@ def main():
 
 
     train_imgs_dir = os.path.join(args.dataset_dir, "train")
-    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/train_labels.csv"))
+    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_eliminate_2/train_labels.csv"))
 
     val_imgs_dir = os.path.join(args.dataset_dir, "test")
-    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_labels.csv"))
+    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_eliminate_2/test_labels.csv"))
 
     #test_imgs_dir = os.path.join(args.dataset_dir, "test")
     #test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
@@ -414,9 +421,9 @@ def main():
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
     ])
-    train_sample = np.random.choice(range(375588), 30000, replace=False)
+    train_sample = np.random.choice(range(249800), 30000, replace=False)
     train_set = PretrainImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
-    val_sample = np.random.choice(range(23790), 3000, replace=False)
+    val_sample = np.random.choice(range(15770), 3000, replace=False)
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
