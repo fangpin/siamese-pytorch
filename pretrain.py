@@ -189,7 +189,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
 
             train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
 
-            label_A = label_A.to(device).unsqueeze(1)
+            label_A = label_A.to(device).unsqueeze(1).float()
             label_B = label_B.to(device)
 
 
@@ -263,7 +263,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
 
         train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
 
-        label_A = label_A.to(device).unsqueeze(1)
+        label_A = label_A.to(device).unsqueeze(1).float()
         label_B = label_B.to(device)
 
         optimizer.zero_grad()
