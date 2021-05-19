@@ -94,7 +94,7 @@ class Siamese(nn.Module):
             #nn.Dropout(0.5),
             #nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 2)
+            nn.Linear(4096, 1)
         )
         self.task_A_concat = nn.Sequential(
             #nn.Linear(12288, 4096),
@@ -175,7 +175,7 @@ class Siamese(nn.Module):
     def forward(self, x):#, x2):
         x1,x2,x3 = x
 
-        print(x1.size())
+        #print(x1.size())
         out1 = self.forward_one(x1)
         out2 = self.forward_one(x2)
         out3 = self.forward_one(x3)

@@ -504,7 +504,7 @@ def main():
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         Loss_B = Multi_cross_entropy()
-        criterion = [nn.CrossEntropyLoss(), Loss_B]
+        criterion = [nn.BinaryCrossEntropyLoss(), Loss_B]
         model.to(device)
         #criterion = criterion.to(device)
         model.train()
