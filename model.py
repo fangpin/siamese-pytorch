@@ -174,7 +174,7 @@ class Siamese(nn.Module):
 
     def forward(self, x):#, x2):
         x1,x2,x3 = x
-        
+
         print(x1.size())
         out1 = self.forward_one(x1)
         out2 = self.forward_one(x2)

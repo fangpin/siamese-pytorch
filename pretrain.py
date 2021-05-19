@@ -26,7 +26,7 @@ import pandas as pd
 from Loss import Multi_cross_entropy
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-classes = ['ONE_CLASS','TWO_CLASS','THREE_CLASS']
+classes = ['THREE_CLASS','ONE_CLASS']
 
 #https://github.com/javaidnabi31/Multi-class-with-imbalanced-dataset-classification/blob/master/20-news-group-classification.ipynb
 def plot_confusion_matrix(args, cm, l_classes,
