@@ -148,10 +148,12 @@ class Siamese(nn.Module):
         return x
 
     def forward_task_A(self, x1,x2,x3):
-        dis12 = torch.pow(x1-x2, 2)
-        dis23 = torch.pow(x2-x3, 2)
-        dis13 = torch.pow(x1-x3, 2)
-
+        #dis12 = torch.pow(x1-x2, 2)
+        #dis23 = torch.pow(x2-x3, 2)
+        #dis13 = torch.pow(x1-x3, 2)
+        dis12 = torch.abs(x1-x2)
+        dis23 = torch.abs(x2-x3)
+        dis13 = torch.abs(x1-x3)
         #max12 = torch.maximum(x1, x2)
         #max23 = torch.maximum(x2, x3)
         #max13 = torch.maximum(x1, x3)
@@ -172,6 +174,8 @@ class Siamese(nn.Module):
 
     def forward(self, x):#, x2):
         x1,x2,x3 = x
+        
+        print(x1.size())
         out1 = self.forward_one(x1)
         out2 = self.forward_one(x2)
         out3 = self.forward_one(x3)
