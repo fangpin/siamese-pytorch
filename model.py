@@ -159,9 +159,9 @@ class Siamese(nn.Module):
         #max23 = torch.maximum(x2, x3)
         #max13 = torch.maximum(x1, x3)
         #concat = torch.cat((torch.tensor(max12), torch.tensor(max23), torch.tensor(max13)), 1)
-        x12 = torch.squeeze(self.task_A(dis12), 1)
-        x23 = torch.squeeze(self.task_A(dis23), 1)
-        x13 = torch.squeeze(self.task_A(dis13), 1)
+        x12 = self.task_A(dis12)
+        x23 = self.task_A(dis23)
+        x13 = self.task_A(dis13)
         #concat = torch.cat((torch.tensor(x12), torch.tensor(x23), torch.tensor(x13)), 1)
 
         #out = self.task_A_concat(concat)
