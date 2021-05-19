@@ -78,8 +78,8 @@ class PretrainImageDataset(Dataset):
             label_A = 0
         elif(label_A == 0):
             label_A = 1
-        label_A = label_A.to(torch.float32)
-
+        label_A = label_A.type(torch.LongTensor)
+            
         sample = {"image_1": image_1, "image_2": image_2, "image_3": image_3, "label_A":label_A , "label_B": torch.FloatTensor(label_B)}
 
         return sample
