@@ -94,8 +94,8 @@ class Siamese(nn.Module):
             #nn.Dropout(0.5),
             #nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 1),
-            nn.Sigmoid()
+            nn.Linear(4096, 2)
+            #nn.Sigmoid()
         )
         self.task_A_concat = nn.Sequential(
             #nn.Linear(12288, 4096),
@@ -153,20 +153,21 @@ class Siamese(nn.Module):
         #dis23 = torch.pow(x2-x3, 2)
         #dis13 = torch.pow(x1-x3, 2)
         dis12 = torch.abs(x1-x2)
-        dis23 = torch.abs(x2-x3)
-        dis13 = torch.abs(x1-x3)
+        #dis23 = torch.abs(x2-x3)
+        #dis13 = torch.abs(x1-x3)
+
         #max12 = torch.maximum(x1, x2)
         #max23 = torch.maximum(x2, x3)
         #max13 = torch.maximum(x1, x3)
         #concat = torch.cat((torch.tensor(max12), torch.tensor(max23), torch.tensor(max13)), 1)
         x12 = self.task_A(dis12)
-        x23 = self.task_A(dis23)
-        x13 = self.task_A(dis13)
+        #x23 = self.task_A(dis23)
+        #x13 = self.task_A(dis13)
         #concat = torch.cat((torch.tensor(x12), torch.tensor(x23), torch.tensor(x13)), 1)
 
         #out = self.task_A_concat(concat)
 
-        return x12,x23,x13
+        return x12
 
     def forward_task_B(self, x):
         x = self.task_B(x)
@@ -183,12 +184,12 @@ class Siamese(nn.Module):
 
         #concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
 
-        x12,x23,x13 = self.forward_task_A(out1, out2, out3)
-        task_A_out = (x12,x23,x13)
+        x12 = self.forward_task_A(out1, out2, out3)
+        #task_A_out = (x12)
         #task_B_out = self.forward_task_B(concat)
 
         #return task_A_out, task_B_out
-        return task_A_out
+        return x12
 
 # for test
 if __name__ == '__main__':
