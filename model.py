@@ -94,7 +94,7 @@ class Siamese(nn.Module):
             #nn.Dropout(0.5),
             #nn.ReLU(inplace=True),
 
-            nn.Linear(4096, 2)
+            nn.Linear(4096, 1)
         )
         self.task_A_concat = nn.Sequential(
             #nn.Linear(12288, 4096),
