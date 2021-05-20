@@ -6,6 +6,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 from dataset_utils import PretrainImageDataset
+from contrastive import ContrastiveLoss
 import torchvision.transforms as T
 import torchvision.transforms.functional as F
 import torch.nn.functional as Function
@@ -508,7 +509,7 @@ def main():
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         Loss_B = Multi_cross_entropy()
-        criterion = [nn.CrossEntropyLoss(), Loss_B]
+        criterion = [ContrastiveLoss(), Loss_B]
         model.to(device)
         #criterion = criterion.to(device)
         model.train()
