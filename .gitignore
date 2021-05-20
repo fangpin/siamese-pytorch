@@ -1,3 +1,4 @@
 dataset/
 runs/
+runs_pretrained/
 __pycache__/
