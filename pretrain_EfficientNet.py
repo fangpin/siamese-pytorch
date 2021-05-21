@@ -24,7 +24,7 @@ import os
 
 from model import EfficientNet_b0
 import pandas as pd
-from Loss import Multi_cross_entropy
+from Loss import Multi_cross_entropy, triplet_loss
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 classes = ['THREE_CLASS','ONE_CLASS']
@@ -535,7 +535,7 @@ def main():
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         Loss_B = Multi_cross_entropy()
-        criterion = [nn.CrossEntropyLoss(), Loss_B]
+        criterion = [triplet_loss(), Loss_B]
         model.to(device)
         #criterion = criterion.to(device)
         model.train()

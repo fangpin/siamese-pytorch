@@ -79,10 +79,19 @@ class PretrainImageDataset(Dataset):
             label_A = 1.
         elif(label_A == 0):
             label_A = 0.
+            
+        
 
 
         sample = {"image_1": image_1, "image_2": image_2, "image_3": image_3, "label_A": torch.from_numpy(np.array([label_A],dtype=np.float32)), "label_B": torch.FloatTensor(label_B)}
         """
+        images = [image_1, image_2, image_3]
+        label_B = np.array(label_B)
+        argm = np.argmax(label_B)
+        img3 = images.pop(argm)
+
+        img1 = images[0]
+        img2 = images[1]
 
         if(label_A == 2):
             label_A = 1
@@ -90,6 +99,6 @@ class PretrainImageDataset(Dataset):
             label_A = 0
 
 
-        sample = {"image_1": image_1, "image_2": image_2, "image_3": image_3, "label_A": label_A, "label_B": torch.FloatTensor(label_B)}
+        sample = {"image_1": img1, "image_2": img2, "image_3": img3, "label_A": label_A, "label_B": torch.FloatTensor(label_B)}
 
         return sample
