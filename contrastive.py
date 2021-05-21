@@ -55,3 +55,18 @@ class ContrastiveLoss(torch.nn.Module):
 
 
         return loss_contrastive
+
+def triplet_loss(y_pred):
+    ref = y_pred[0::3, :]
+    pos = y_pred[1::3, :]
+    neg = y_pred[2::3, :]
+    L12 = (ref - pos).pow(2).sum(1)
+    L13 = (ref - neg).pow(2).sum(1)
+    L23 = (pos - neg).pow(2).sum(1)
+    correct = (L12 < L13) * (L12 < L23)
+
+    alpha = 0.2
+    d1 = F.relu((L12 - L13) + alpha)
+    d2 = F.relu((L12 - L23) + alpha)
+    d = torch.mean(d1 + d2)
+    return d, torch.sum(correct)
