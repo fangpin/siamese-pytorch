@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 
-from model import Siamese
+from model import EfficientNet_b0
 import pandas as pd
 from Loss import Multi_cross_entropy
 
@@ -151,11 +151,11 @@ def plot_classes_preds(net, images, labels):
 
 def calculate_accuracy(y_pred, y):
     top_pred = y_pred.argmax(1, keepdim=True)
-    #print(top_pred.view_as(y))
-    #print(y)
+    print(top_pred.view_as(y))
+    print(y)
     correct = top_pred.eq(y.view_as(top_pred)).sum()
     acc = correct.float() / y.shape[0]
-    print(acc.item())
+    #print(acc.item())
     return acc
 
 
@@ -205,7 +205,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_inputs_2 = train_inputs_2.to(device)
             train_inputs_3 = train_inputs_3.to(device)
 
-            train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
+            train_inputs = (train_inputs_1, train_inputs_2)
 
             label_A = label_A.to(device)
             #label_A = label_A.unsqueeze(1)
@@ -286,7 +286,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         train_inputs_2 = train_inputs_2.to(device)
         train_inputs_3 = train_inputs_3.to(device)
 
-        train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
+        train_inputs = (train_inputs_1, train_inputs_2)
 
         label_A = label_A.to(device)
         #label_A = label_A.unsqueeze(1)
@@ -447,7 +447,7 @@ def main():
         #T.RandomRotation(5),
         T.RandomHorizontalFlip(0.5),
         # SquarePad(),
-        T.Resize((128,128)),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
@@ -456,14 +456,14 @@ def main():
     test_data_transform = T.Compose([
         #T.ToPILImage("RGB"),
         # SquarePad(),
-        T.Resize((128,128)),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
     ])
-    train_sample = np.random.choice(range(249800), 1000, replace=False)
+    train_sample = np.random.choice(range(249800), 30000, replace=False)
     train_set = PretrainImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
-    val_sample = np.random.choice(range(15770), 100, replace=False)
+    val_sample = np.random.choice(range(15770), 3000, replace=False)
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
@@ -504,7 +504,7 @@ def main():
             writer.add_figure('predictions vs. actuals', fig, global_step= i)
 
     elif (args.examine == True):
-        model = Siamese()
+        model = EfficientNet_b0()
         model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
 
@@ -520,12 +520,12 @@ def main():
         writer = SummaryWriter('runs_pretrained/' + args.model_name)
 
         if(args.continue_train == "NONE"):
-            model = Siamese()
-            model.apply(initialize_parameters)
+            model = EfficientNet_b0()
+            #model.apply(initialize_parameters)
 
         else:
 
-            model = Siamese()
+            model = EfficientNet_b0()
             model.load_state_dict(torch.load('runs_pretrained/' + args.continue_train + '/' + args.continue_train + '.pth'))
             print("CONTINUE TRAIN MODE----")
         def count_parameters(model):

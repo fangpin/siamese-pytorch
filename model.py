@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from efficientnet_pytorch import EfficientNet
+
 
 class AlexNet(nn.Module):
 
@@ -191,9 +193,81 @@ class Siamese(nn.Module):
         #return task_A_out, task_B_out
         return x12
 
+class EfficientNet_b0(nn.Module):
+    def __init__(self):
+        super(EfficientNet_b0, self).__init__()
+        self.model = EfficientNet.from_pretrained('efficientnet-b0')
+        for param in self.model.parameters():
+            param.requires_grad = True
+        
+        self.classifier_layer = nn.Sequential(
+            nn.Linear(1280 , 512),
+            nn.BatchNorm1d(512),
+            nn.Dropout(0.2),
+            nn.Linear(512 , 16)
+             #            nn.Linear(256 , 104)
+        )
+        self.task_A = nn.Sequential(
+                #nn.Linear(12288, 4096),
+                #nn.BatchNorm1d(4096),
+                #nn.Dropout(0.5),
+                #nn.ReLU(inplace=True),
+
+                #nn.Linear(4096, 4096),
+                #nn.BatchNorm1d(4096),
+                #nn.Dropout(0.5),
+                #nn.ReLU(inplace=True),
+
+                #nn.Linear(4096, 4096),
+                #nn.BatchNorm1d(4096),
+                #nn.Dropout(0.5),
+                #nn.ReLU(inplace=True),
+
+                nn.Linear(16, 2)
+                #nn.Sigmoid()
+        )
+    def forward_task_A(self, x1,x2):
+    #dis12 = torch.pow(x1-x2, 2)
+    #dis23 = torch.pow(x2-x3, 2)
+    #dis13 = torch.pow(x1-x3, 2)
+        dis12 = torch.abs(x1-x2)
+    #dis23 = torch.abs(x2-x3)
+    #dis13 = torch.abs(x1-x3)
+
+    #max12 = torch.maximum(x1, x2)
+    #max23 = torch.maximum(x2, x3)
+    #max13 = torch.maximum(x1, x3)
+    #concat = torch.cat((torch.tensor(max12), torch.tensor(max23), torch.tensor(max13)), 1)
+        x12 = self.task_A(dis12)
+        return x12
+    def forward(self, inputs):
+        x1,x2 = inputs
+        out1 = self.model.extract_features(x1)
+
+        # Pooling and final linear layer
+        out1 = self.model._avg_pooling(out1)
+        out1 = out1.flatten(start_dim=1)
+        out1 = self.model._dropout(out1)
+        out1 = self.classifier_layer(out1)
+
+        out2 = self.model.extract_features(x2)
+
+        # Pooling and final linear layer
+        out2 = self.model._avg_pooling(out2)
+        out2 = out2.flatten(start_dim=1)
+        out2 = self.model._dropout(out2)
+        out2 = self.classifier_layer(out2)
+
+        #concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
+
+        x12 = self.forward_task_A(out1, out2)
+        return x12
+
+
+
 # for test
 if __name__ == '__main__':
-    net = Siamese()
+    net = EfficientNet_b0()
     print(net)
     print(list(net.parameters()))
 
