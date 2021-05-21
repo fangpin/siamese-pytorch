@@ -196,7 +196,7 @@ class Siamese(nn.Module):
 class EfficientNet_b0(nn.Module):
     def __init__(self):
         super(EfficientNet_b0, self).__init__()
-        self.model = EfficientNet.from_pretrained('efficientnet-b0')
+        self.model = EfficientNet.from_name('efficientnet-b0')
         for param in self.model.parameters():
             param.requires_grad = True
         
@@ -249,6 +249,7 @@ class EfficientNet_b0(nn.Module):
         out1 = out1.flatten(start_dim=1)
         out1 = self.model._dropout(out1)
         out1 = self.classifier_layer(out1)
+        out1 = F.normalize(out1)
 
         out2 = self.model.extract_features(x2)
 
@@ -257,6 +258,7 @@ class EfficientNet_b0(nn.Module):
         out2 = out2.flatten(start_dim=1)
         out2 = self.model._dropout(out2)
         out2 = self.classifier_layer(out2)
+        out2 = F.normalize(out2)
 
         #concat = torch.cat((torch.tensor(out1), torch.tensor(out2), torch.tensor(out3)), 1)
 

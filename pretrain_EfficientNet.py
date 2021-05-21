@@ -205,16 +205,16 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_inputs_2 = train_inputs_2.to(device)
             train_inputs_3 = train_inputs_3.to(device)
 
-            train_inputs = (train_inputs_1, train_inputs_2)
+            train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
 
-            label_A = label_A.to(device)
+            #label_A = label_A.to(device)
             #label_A = label_A.unsqueeze(1)
             #label_A = label_A.float()
             #label_B = label_B.to(device)
 
 
 
-            task_A_pred = model(train_inputs)
+            out1, out2, out3 = model(train_inputs)
             #out1, out2 = model(train_inputs)
 
             criterion[0] = criterion[0].to(device)
@@ -224,11 +224,11 @@ def evaluate(args, model, val_dataloader, criterion, device):
             #loss_A23 = criterion[0](task_A_pred[1], label_A)
 
 
-            loss_A = criterion[0](task_A_pred, label_A)
+            loss_A, correct = criterion[0](out1, out2, out3)
             #loss_A = (loss_A12 + loss_A23 + loss_A13)
             # loss_B = criterion[1](task_B_pred, label_B)
             loss_B = 0.0
-            loss = loss_A + loss_B
+            loss = loss_A
             #acc = calculate_accuracy(task_A_pred, label_A)
             #acc += calculate_accuracy(task_A_pred[1], label_A)
             #acc += calculate_accuracy(task_A_pred[2], label_A)
@@ -240,10 +240,10 @@ def evaluate(args, model, val_dataloader, criterion, device):
             #B_loss += loss_B.item()
             B_loss += loss_B
 
-            acc = calculate_accuracy(task_A_pred, label_A)
+            #acc = calculate_accuracy(task_A_pred, label_A)
 
             epoch_loss += loss.item()
-            epoch_acc += acc.item()
+            epoch_acc += correct.item()
             #epoch_acc += acc
 
     return A_loss/ len(val_dataloader) , B_loss/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
@@ -286,7 +286,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         train_inputs_2 = train_inputs_2.to(device)
         train_inputs_3 = train_inputs_3.to(device)
 
-        train_inputs = (train_inputs_1, train_inputs_2)
+        train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
 
         label_A = label_A.to(device)
         #label_A = label_A.unsqueeze(1)
@@ -296,7 +296,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         optimizer.zero_grad()
 
         #task_A_pred, task_B_pred = model(train_inputs)
-        task_A_pred = model(train_inputs)
+        out1, out2, out3 = model(train_inputs)
 
         criterion[0] = criterion[0].to(device)
         criterion[1] = criterion[1].to(device)
@@ -305,12 +305,12 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         #loss_A12 = criterion[0](task_A_pred[0], label_A)
         #loss_A23 = criterion[0](task_A_pred[1], label_A)
 
-        loss_A = criterion[0](task_A_pred, label_A)
-       # loss_A = (loss_A12 + loss_A23 + loss_A13)
+        loss_A, correct = criterion[0](out1, out2, out3)
+        # loss_A = (loss_A12 + loss_A23 + loss_A13)
         #loss_B = criterion[1](task_B_pred, label_B)
         loss_B = 0.0
-        loss = loss_A + loss_B
-        acc = calculate_accuracy(task_A_pred, label_A)
+        loss = loss_A
+        #acc = calculate_accuracy(task_A_pred, label_A)
         #acc += calculate_accuracy(task_A_pred[1], label_A)
         #acc += calculate_accuracy(task_A_pred[2], label_A)
         #acc /= 3.0
@@ -324,7 +324,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         #B_loss += loss_B.item()
         B_loss += loss_B
 
-        epoch_acc += acc.item()
+        epoch_acc += correct.item()
         #epoch_acc += acc
         if batch_idx % args.log_interval == args.log_interval-1:
             val_loss_A, val_loss_B, val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
