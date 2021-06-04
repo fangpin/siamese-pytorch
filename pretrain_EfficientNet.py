@@ -22,12 +22,14 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 
-from model import EfficientNet_b0
+from model import EfficientNet_b0, AlexNet_Triplet, EfficientNet_V2_S
 import pandas as pd
 from Loss import Multi_cross_entropy, triplet_loss
 
+torch.cuda.empty_cache()
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-classes = ['THREE_CLASS','ONE_CLASS']
+classes = ['ONE_CLASS','TWO_CLASS', 'THREE_CLASSES']
 
 #https://github.com/javaidnabi31/Multi-class-with-imbalanced-dataset-classification/blob/master/20-news-group-classification.ipynb
 def plot_confusion_matrix(args, cm, l_classes,
@@ -205,20 +207,19 @@ def evaluate(args, model, val_dataloader, criterion, device):
             train_inputs_2 = train_inputs_2.to(device)
             train_inputs_3 = train_inputs_3.to(device)
 
-            train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
 
-            #label_A = label_A.to(device)
-            #label_A = label_A.unsqueeze(1)
-            #label_A = label_A.float()
-            #label_B = label_B.to(device)
+            out1 = model(train_inputs_1)
+            out1 = Function.normalize(out1)
+            out2 = model(train_inputs_2)
+            out2 = Function.normalize(out2)
 
+            out3 = model(train_inputs_3)
+            out3 = Function.normalize(out3)
 
-
-            out1, out2, out3 = model(train_inputs)
             #out1, out2 = model(train_inputs)
 
             criterion[0] = criterion[0].to(device)
-            criterion[1] = criterion[1].to(device)
+            #criterion[1] = criterion[1].to(device)
 
             #loss_A12 = criterion[0](task_A_pred[0], label_A)
             #loss_A23 = criterion[0](task_A_pred[1], label_A)
@@ -246,7 +247,7 @@ def evaluate(args, model, val_dataloader, criterion, device):
             epoch_acc += correct.item()
             #epoch_acc += acc
 
-    return A_loss/ len(val_dataloader) , B_loss/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / len(val_dataloader)
+    return A_loss/ len(val_dataloader) , B_loss/ len(val_dataloader) , epoch_loss / len(val_dataloader), epoch_acc / (len(val_dataloader))
     #return epoch_loss / 3., epoch_acc / 3.
 
 
@@ -285,18 +286,18 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         train_inputs_1 = train_inputs_1.to(device)
         train_inputs_2 = train_inputs_2.to(device)
         train_inputs_3 = train_inputs_3.to(device)
-
-        train_inputs = (train_inputs_1, train_inputs_2, train_inputs_3)
-
-        label_A = label_A.to(device)
-        #label_A = label_A.unsqueeze(1)
-        #label_A = label_A.float()
-        #label_B = label_B.to(device)
-
+ 
         optimizer.zero_grad()
 
         #task_A_pred, task_B_pred = model(train_inputs)
-        out1, out2, out3 = model(train_inputs)
+
+        out1 = model(train_inputs_1)
+        out1 = Function.normalize(out1)
+        out2 = model(train_inputs_2)
+        out2 = Function.normalize(out2)
+
+        out3 = model(train_inputs_3)
+        out3 = Function.normalize(out3)
 
         criterion[0] = criterion[0].to(device)
         criterion[1] = criterion[1].to(device)
@@ -326,8 +327,15 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
 
         epoch_acc += correct.item()
         #epoch_acc += acc
+        writer.add_scalar('Task A training loss',
+                            loss_A,
+                              (epoch-1) * len(train_dataloader) + batch_idx)
+        writer.add_scalar('Task A val training',
+                            correct,
+                              (epoch-1) * len(train_dataloader) + batch_idx)
         if batch_idx % args.log_interval == args.log_interval-1:
             val_loss_A, val_loss_B, val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
+            model.train()
             if val_loss < best_valid_loss:
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
@@ -339,11 +347,14 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
             args.val_acc.append(val_acc)
             print('Train Epoch: {} [{}/{} ({:.2f}%)]\t'
                   'Train Task A Loss: {:.2f} Train Task B Loss: {:.2f} Train Loss: {:.2f} Train T-A Acc: {:.2f}%  Validation Task A Loss: {:.2f} Validation Task B Loss: {:.2f} Validation Loss: {:.2f}  Validation Accuracy: {:.2f}%'.format(
-                epoch, batch_idx * len(train_inputs), len(train_dataloader.dataset),
-                       100. * batch_idx / len(train_dataloader), A_loss/args.log_interval, B_loss/args.log_interval, epoch_loss/args.log_interval, epoch_acc/args.log_interval, val_loss_A, val_loss_B, val_loss, val_acc))
-            writer.add_scalar('Task A training loss',
-                            A_loss/args.log_interval,
+                epoch, batch_idx, len(train_dataloader.dataset),
+                       100. * batch_idx / len(train_dataloader), A_loss/args.log_interval, B_loss/args.log_interval, epoch_loss/args.log_interval, epoch_acc/(args.log_interval), val_loss_A, val_loss_B, val_loss, val_acc))
+            writer.add_scalar('Task A training loss - 400 iterations',
+                            A_loss,
                               (epoch-1) * len(train_dataloader) + batch_idx)
+            #writer.add_scalar('Task A training loss',
+            #                A_loss/args.log_interval,
+            #                  (epoch-1) * len(train_dataloader) + batch_idx)
             writer.add_scalar('Task B training loss',
                               B_loss / args.log_interval,
                               (epoch - 1) * len(train_dataloader) + batch_idx)
@@ -387,12 +398,11 @@ class SquarePad:
         padding = (hp, vp, hp, vp)
         return F.pad(image, padding, 0, 'constant')
 
-
 def initialize_parameters(m):
     if isinstance(m, nn.Conv2d):
         nn.init.kaiming_normal_(m.weight.data, nonlinearity='relu')
-        nn.init.constant_(m.bias.data, 0)
-    elif isinstance(m, nn.Linear):
+        #nn.init.constant_(m.bias.data, 0)
+    if isinstance(m, nn.Linear):
         nn.init.xavier_normal_(m.weight.data, gain=nn.init.calculate_gain('relu'))
         nn.init.constant_(m.bias.data, 0)
 
@@ -424,7 +434,7 @@ def main():
     args = parser.parse_args()
     # set seed
 
-    SEED = 1234
+    SEED = 1456
 
     random.seed(SEED)
     np.random.seed(SEED)
@@ -434,23 +444,23 @@ def main():
 
 
     train_imgs_dir = os.path.join(args.dataset_dir, "train")
-    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_eliminate_2/train_labels.csv"))
+    train_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_strong_60/train_labels.csv"))
 
     val_imgs_dir = os.path.join(args.dataset_dir, "test")
-    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_eliminate_2/test_labels.csv"))
+    val_labels = pd.read_csv(os.path.join(args.dataset_dir, "label_strong_60/test_labels.csv"))
 
     #test_imgs_dir = os.path.join(args.dataset_dir, "test")
     #test_labels = pd.read_csv(os.path.join(args.dataset_dir, "label/test_label.csv"))
 
     training_data_transform = T.Compose([
         #T.ToPILImage("RGB"),
-        #T.RandomRotation(5),
-        T.RandomHorizontalFlip(0.5),
+        #T.RandomRotation(4),
+        T.RandomHorizontalFlip(0.3),
         # SquarePad(),
         T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225]),
+                std=[0.229, 0.224, 0.225]),
     ])
 
     test_data_transform = T.Compose([
@@ -461,10 +471,10 @@ def main():
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
     ])
-    train_sample = np.random.choice(range(249800), 30000, replace=False)
     train_set = PretrainImageDataset(train_labels, train_imgs_dir, transform=training_data_transform)
-    val_sample = np.random.choice(range(15770), 3000, replace=False)
+    #train_sample = np.random.choice(range(len(train_set)), 00, replace=False)
     val_set = PretrainImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
+    #val_sample = np.random.choice(range(len(val_set)), 100, replace=False)
     #test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
 
@@ -472,8 +482,8 @@ def main():
 
     #print("testset: ",len(test_set))
 
-    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=False, sampler=train_sample)
-    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, sampler=val_sample)
+    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True) #, sampler=train_sample)
+    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True) #, sampler=val_sample)
     #test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
     print("trainset: ",len(train_dataloader))
     print("val: ",len(val_dataloader))
@@ -484,7 +494,7 @@ def main():
     if(args.visualize == True):
         writer = SummaryWriter('runs_pretrained/' + args.model_name)
         # plot the images in the batch, along with predicted and true labels
-        for i in range(30):
+        for i in range(60):
             fig = plt.figure(figsize=(12, 48))
 
             image1 = train_set[i]['image_1']
@@ -493,18 +503,23 @@ def main():
             images = [image1, image2, image3]
             label_A = train_set[i]['label_A']
             label_B = train_set[i]['label_B']
-
+            name1 = train_set[i]['name1']
+            name2 = train_set[i]['name2']
+            name3 = train_set[i]['name3']
+            name = [name1, name2, name3]
+            print(name[0],name[1],name[2])
             for idx in np.arange(3):
                 ax = fig.add_subplot(1, 3, idx + 1, xticks=[], yticks=[])
                 matplotlib_imshow(images[idx], one_channel=False)
                 ax.set_title("{0}, {1:.1f}%\n(label: {2})".format(
                     "percentage",
                     label_B[idx],
-                    classes[label_A]))
+                     name[idx]), 
+                   )
             writer.add_figure('predictions vs. actuals', fig, global_step= i)
 
     elif (args.examine == True):
-        model = EfficientNet_b0()
+        model = EfficientNet_V2_S()
         model.load_state_dict(torch.load('runs_pretrained/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
 
@@ -520,13 +535,13 @@ def main():
         writer = SummaryWriter('runs_pretrained/' + args.model_name)
 
         if(args.continue_train == "NONE"):
-            model = EfficientNet_b0()
+            model = EfficientNet_V2_S()
             #model.apply(initialize_parameters)
 
         else:
 
-            model = EfficientNet_b0()
-            model.load_state_dict(torch.load('runs_pretrained/' + args.continue_train + '/' + args.continue_train + '.pth'))
+            model = EfficientNet_V2_S()
+            model.load_state_dict(torch.load('runs_pretrained/' + args.continue_train + '/' + args.continue_train + '-pretrained.pth'))
             print("CONTINUE TRAIN MODE----")
         def count_parameters(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -535,7 +550,8 @@ def main():
 
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         Loss_B = Multi_cross_entropy()
-        criterion = [triplet_loss(), Loss_B]
+        Loss_A = triplet_loss()
+        criterion = [Loss_A, Loss_B]
         model.to(device)
         #criterion = criterion.to(device)
         model.train()

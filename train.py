@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import itertools
 import os
 
-from model import Siamese
+from model import EfficientNet_b0_baseline, EfficientNet_b0_Pretrained, EfficientNet_b0
 import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -31,7 +31,9 @@ classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
 def plot_confusion_matrix(args, cm, l_classes,
                           normalize=False,
                           title='Confusion matrix',
-                          cmap=plt.cm.Blues):
+                          cmap=plt.cm.Blues, 
+                          recall = 0,
+                          name = " "):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -39,7 +41,7 @@ def plot_confusion_matrix(args, cm, l_classes,
     fig = plt.figure()
     fig.set_size_inches(14, 12, forward=True)
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cm = cm.astype('float') / cm.sum(axis=recall)[:, np.newaxis]
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
@@ -64,7 +66,7 @@ def plot_confusion_matrix(args, cm, l_classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
-    plt.savefig('runs/' + args.model_name + '/' + args.model_name + '-confusion.png')
+    plt.savefig('runs/' + args.model_name + '/' + args.model_name + name +  '-confusion.png')
 
 def get_predictions(args, model, iterator, device):
 
@@ -203,6 +205,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
     model.train()
 
     for batch_idx, batch in enumerate(train_dataloader):
+        #model.model.eval()
         train_inputs = batch['image']
         train_label = batch['label']
         train_inputs = train_inputs.to(device)
@@ -217,6 +220,7 @@ def train(args, epoch, model, train_dataloader, val_dataloader, optimizer, crite
         epoch_acc += acc.item()
         if batch_idx % args.log_interval == args.log_interval-1:
             val_loss, val_acc = evaluate(args, model, val_dataloader, criterion, device)
+            model.train()
             if val_loss < best_valid_loss:
                 print(f'Validation Loss Decreased({best_valid_loss:.6f}--->{val_loss:.6f}) \t Saving The Model')
                 best_valid_loss = val_loss
@@ -258,13 +262,24 @@ class SquarePad:
 
 
 def initialize_parameters(m):
-    if isinstance(m, nn.Conv2d):
-        nn.init.kaiming_normal_(m.weight.data, nonlinearity='relu')
-        nn.init.constant_(m.bias.data, 0)
-    elif isinstance(m, nn.Linear):
+    #if isinstance(m, nn.Conv2d):
+    #    nn.init.kaiming_normal_(m.weight.data, nonlinearity='relu')
+    #    nn.init.constant_(m.bias.data, 0)
+    if isinstance(m, nn.Linear):
         nn.init.xavier_normal_(m.weight.data, gain=nn.init.calculate_gain('relu'))
-        nn.init.constant_(m.bias.data, 0)
-
+        #nn.init.constant_(m.bias.data, 0)
+def make_weights_for_balanced_classes(images, nclasses):                        
+    count = [0] * nclasses                                                      
+    for item in images:                                                         
+        count[item["label"]] += 1                                                     
+    weight_per_class = [0.] * nclasses                                      
+    N = float(sum(count))                                                   
+    for i in range(nclasses):                                                   
+        weight_per_class[i] = N/float(count[i])                                 
+    weight = [0] * len(images)                                              
+    for idx, val in enumerate(images):                                          
+        weight[idx] = weight_per_class[val["label"]]                                  
+    return weight
 
 def main():
     # Training settings
@@ -287,6 +302,8 @@ def main():
     parser.add_argument('--weight-decay', type=float, default=0.0,
                         help='Weight decay hyperparameter')
     parser.add_argument('--continue-train', type=str,  default='NONE',
+                        help='saves the current model')
+    parser.add_argument('--transfer-train', type=str,  default='NONE',
                         help='saves the current model')
     parser.add_argument('--examine', default=False, action='store_true')
 
@@ -313,10 +330,10 @@ def main():
 
     training_data_transform = T.Compose([
         T.ToPILImage("RGB"),
-        T.RandomRotation(5),
-        T.RandomHorizontalFlip(0.5),
+        T.RandomRotation(3),
+        #T.RandomHorizontalFlip(0.5),
         # SquarePad(),
-        T.Resize(128),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
@@ -325,7 +342,7 @@ def main():
     test_data_transform = T.Compose([
         T.ToPILImage("RGB"),
         # SquarePad(),
-        T.Resize(128),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]),
@@ -335,18 +352,30 @@ def main():
     val_set = ImageDataset(val_labels, val_imgs_dir, transform=test_data_transform)
     test_set = ImageDataset(test_labels, test_imgs_dir, transform=test_data_transform)
 
+
     print("trainset: ",len(train_set))
     print("val: ",len(val_set))
     print("testset: ",len(test_set))
 
-    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
+    classes = ['Surprise','Fear','Disgust','Happiness','Sadness','Anger','Neutral']
+    #weights = make_weights_for_balanced_classes(train_set, len(classes))                                                                
+    #weights = torch.DoubleTensor(weights)                                       
+    #sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))                     
+                                                                                    
+    #train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=args.batch_size, shuffle = True,                              
+    #                                                         sampler = sampler, num_workers=args.workers, pin_memory=True)     
+
+    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True) #, sampler = sampler)
     val_dataloader = DataLoader(val_set, batch_size=args.batch_size, shuffle=True)
     test_dataloader = DataLoader(test_set, batch_size=args.batch_size, shuffle=True)
 
     # Load CIFAR10 dataset
     if(args.examine == True):
-        model = Siamese()
+        model_old = EfficientNet_b0()
+        model = EfficientNet_b0_Pretrained(model_old)
         model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
+        #model = EfficientNet_b0_baseline()
+        #model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
 
         images, labels, probs = get_predictions(args, model, test_dataloader, device)
@@ -354,21 +383,33 @@ def main():
         cm = confusion_matrix(labels, pred_labels)
         #plot_confusion_matrix(args, labels, pred_labels)
         plot_confusion_matrix(args, cm, l_classes=np.asarray(classes), normalize=True,
-                      title='Normalized confusion matrix')
+                      title='Normalized recall confusion matrix', recall = 1, name = "-recall-")
+        plot_confusion_matrix(args, cm, l_classes=np.asarray(classes), normalize=True,
+                      title='Normalized precision confusion matrix', recall = 0, name = "-precision-")
+        plot_confusion_matrix(args, cm, l_classes=np.asarray(classes), normalize=False,
+                      title='Normalized confusion matrix', recall = 0, name = "-unnormalized-")
+
+
         print("done!")
     else:
 
         writer = SummaryWriter('runs/' + args.model_name)
+        if(args.transfer_train != "NONE"):
+            model_old = EfficientNet_b0()
+            model_old.load_state_dict(torch.load('runs_pretrained/' + args.transfer_train + '/' + args.transfer_train + '-pretrained.pth')) #, strict=False)
 
-        if(args.continue_train == "NONE"):
-            model = Siamese()
-            model.apply(initialize_parameters)
+            model = EfficientNet_b0_Pretrained(model_old)
 
+        elif(args.continue_train == "NONE"):
+            model = EfficientNet_b0_baseline()
+            print("Train baseline!")
+            #model.apply(initialize_parameters)
         else:
 
-            model = Siamese()
+            model = EfficientNet_b0_baseline()
             model.load_state_dict(torch.load('runs/' + args.continue_train + '/' + args.continue_train + '.pth'))
             print("CONTINUE TRAIN MODE----")
+
         def count_parameters(model):
             return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
@@ -405,7 +446,7 @@ def main():
         writer.flush()
 
         #test time
-        model = Siamese()
+        model = EfficientNet_b0_baseline()
         model.load_state_dict(torch.load('runs/' + args.model_name + '/' + args.model_name+ '.pth'))
         model.to(device)
         criterion = nn.CrossEntropyLoss()

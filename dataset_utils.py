@@ -93,12 +93,7 @@ class PretrainImageDataset(Dataset):
         img1 = images[0]
         img2 = images[1]
 
-        if(label_A == 2):
-            label_A = 1
-        elif(label_A == 0):
-            label_A = 0
 
-
-        sample = {"image_1": img1, "image_2": img2, "image_3": img3, "label_A": label_A, "label_B": torch.FloatTensor(label_B)}
+        sample = {"image_1": img1, "image_2": img2, "image_3": img3, "label_A": label_A, "label_B": torch.FloatTensor(label_B), "name1": self.img_labels.iloc[idx, 0],"name2": self.img_labels.iloc[idx, 1],"name3": self.img_labels.iloc[idx, 2] }
 
         return sample
