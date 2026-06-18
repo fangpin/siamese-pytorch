@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Siamese Docs - Architecture</title>
+    <meta
+      name="description"
+      content="Architecture chapter for the Siamese Networks for One-Shot Learning PyTorch implementation."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/site.css" />
+    <script src="../assets/site.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell docs-shell">
+      <header class="topbar" id="top">
+        <div class="brand-block">
+          <p class="eyebrow" data-i18n="docsArch.eyebrow">Architecture chapter</p>
+          <h1 class="brand-title" data-i18n="docsArch.title">Siamese model architecture</h1>
+          <p class="brand-subtitle" data-i18n="docsArch.subtitle">
+            Shared encoder path, embedding projection, comparison logic, and output scoring.
+          </p>
+        </div>
+
+        <nav class="topbar-actions" aria-label="Primary">
+          <a class="nav-link" href="index.html" data-i18n="docs.backDocs">Docs Home</a>
+          <a class="nav-link" href="../index.html" data-i18n="docs.backHome">Home</a>
+          <div class="lang-toggle" role="group" aria-label="Language selector">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="zh">中文</button>
+          </div>
+        </nav>
+      </header>
+
+      <main class="docs-main">
+        <section class="panel docs-section" id="architecture-boundary">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsArch.boundaryEyebrow">Module boundary</p>
+            <h2 data-i18n="docsArch.boundaryTitle">`model.py` owns the whole similarity function</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsArch.boundaryBody">
+            The repository keeps all model definition logic inside `model.py`. The `Siamese`
+            class exposes `forward_one` for single-branch feature extraction and `forward` for
+            pairwise scoring.
+          </p>
+        </section>
+
+        <section class="panel docs-section" id="architecture-encoder">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsArch.encoderEyebrow">Encoder path</p>
+            <h2 data-i18n="docsArch.encoderTitle">Shared convolution tower</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsArch.convTitle">Convolution blocks</h3>
+              <p data-i18n="docsArch.convBody">
+                The encoder applies four convolution stages with intermittent max pooling. This
+                progressively reduces spatial resolution while expanding channel depth.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.sharedTitle">Weight sharing</h3>
+              <p data-i18n="docsArch.sharedBody">
+                Both input images pass through the same `self.conv` and `self.liner` modules,
+                ensuring that similarity is measured in a common embedding space.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="architecture-forward">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsArch.forwardEyebrow">Control flow</p>
+            <h2 data-i18n="docsArch.forwardTitle">From `forward_one` to final logit</h2>
+          </div>
+          <div class="docs-flow-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsArch.step1Title">1. `forward_one`</h3>
+              <p data-i18n="docsArch.step1Body">
+                Each branch image is encoded by the convolution stack, flattened, and projected
+                into a 4096-dimensional embedding with sigmoid activation.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.step2Title">2. Absolute difference</h3>
+              <p data-i18n="docsArch.step2Body">
+                `forward` computes `torch.abs(out1 - out2)`, which is the central similarity
+                comparison primitive in this implementation.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.step3Title">3. Output layer</h3>
+              <p data-i18n="docsArch.step3Body">
+                The difference vector is passed to `self.out`, producing a single logit for
+                binary same-class vs different-class classification.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="architecture-tradeoffs">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsArch.tradeoffEyebrow">Current limitations</p>
+            <h2 data-i18n="docsArch.tradeoffTitle">Implementation tradeoffs in this repo</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsArch.limit1Title">Single-file ownership</h3>
+              <p data-i18n="docsArch.limit1Body">
+                The architecture is compact and easy to read, but the file does not separate
+                encoder, projection, and scoring into independently testable modules.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.limit2Title">Minimal output head</h3>
+              <p data-i18n="docsArch.limit2Body">
+                The model returns logits directly and leaves probability calibration to the
+                loss function and downstream evaluation code.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
