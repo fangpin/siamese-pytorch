@@ -103,6 +103,68 @@
           </div>
         </section>
 
+        <section class="panel docs-section" id="reading-guide">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docs.readingEyebrow">Reading guide</p>
+            <h2 data-i18n="docs.readingTitle">How to navigate the implementation</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docs.readingStructureTitle">Start from file ownership</h3>
+              <p data-i18n="docs.readingStructureBody">
+                This repository is small enough that the source layout and the conceptual
+                layout are almost identical: `model.py` owns model logic, `mydataset.py`
+                owns data semantics, and `train.py` owns orchestration.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docs.readingFlowTitle">Follow control flow end to end</h3>
+              <p data-i18n="docs.readingFlowBody">
+                Read the chapters in the same order that the runtime executes: dataset
+                construction first, model definition second, training loop last. This makes
+                the evaluation contract and the final accuracy calculation easier to follow.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="doc-sources">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docs.sourceEyebrow">Doc sources</p>
+            <h2 data-i18n="docs.sourceTitle">Markdown chapter sources</h2>
+          </div>
+          <div class="docs-flow-grid">
+            <article class="note-card">
+              <h3><a href="content/overview.md" data-i18n="docs.sourceOverview">Overview source</a></h3>
+              <p data-i18n="docs.sourceOverviewBody">
+                The docs system map is backed by a Markdown source file so the long-form
+                technical narrative can evolve without hard-coding everything into HTML.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3><a href="content/architecture.md" data-i18n="docs.sourceArchitecture">Architecture source</a></h3>
+              <p data-i18n="docs.sourceArchitectureBody">
+                Contains the module boundary, main functions, tensor flow, tradeoffs, and
+                limitations for `model.py`.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3><a href="content/dataset.md" data-i18n="docs.sourceDataset">Dataset source</a></h3>
+              <p data-i18n="docs.sourceDatasetBody">
+                Captures the loading strategy, control flow, data flow, and evaluation contract
+                behind `mydataset.py`.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3><a href="content/training.md" data-i18n="docs.sourceTraining">Training source</a></h3>
+              <p data-i18n="docs.sourceTrainingBody">
+                Documents the `train.py` runtime orchestration, optimization path, artifacts,
+                and current implementation limits.
+              </p>
+            </article>
+          </div>
+        </section>
+
         <section class="panel docs-section" id="repo-map">
           <div class="section-heading">
             <p class="eyebrow" data-i18n="docs.repoEyebrow">Repository map</p>

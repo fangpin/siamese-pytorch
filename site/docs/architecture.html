@@ -39,6 +39,22 @@
       </header>
 
       <main class="docs-main">
+        <section class="panel docs-section" id="architecture-source">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docs.sourceEyebrow">Doc sources</p>
+            <h2 data-i18n="docsArch.sourceTitle">Markdown source for this chapter</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsArch.sourceBody">
+            This chapter is backed by a Markdown source file so the implementation narrative can
+            stay editable and expand with the codebase.
+          </p>
+          <div class="cta-row">
+            <a class="secondary-cta" href="content/architecture.md" data-i18n="docsArch.sourceLink">
+              Open architecture.md
+            </a>
+          </div>
+        </section>
+
         <section class="panel docs-section" id="architecture-boundary">
           <div class="section-heading">
             <p class="eyebrow" data-i18n="docsArch.boundaryEyebrow">Module boundary</p>
@@ -99,6 +115,38 @@
               <p data-i18n="docsArch.step3Body">
                 The difference vector is passed to `self.out`, producing a single logit for
                 binary same-class vs different-class classification.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="architecture-tensor-flow">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsArch.tensorEyebrow">Tensor flow</p>
+            <h2 data-i18n="docsArch.tensorTitle">How data changes shape inside the model</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsArch.tensorInputTitle">Input and feature maps</h3>
+              <p data-i18n="docsArch.tensorInputBody">
+                The model consumes grayscale Omniglot tensors. The convolution path gradually
+                turns those images into deeper feature maps while shrinking spatial size through
+                max pooling.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.tensorEmbedTitle">Embedding projection</h3>
+              <p data-i18n="docsArch.tensorEmbedBody">
+                After flattening, the tensor is mapped from a `9216`-wide vector into a `4096`
+                dimensional embedding. That shared latent space is what makes pairwise
+                comparison meaningful.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsArch.tensorScoreTitle">Scoring path</h3>
+              <p data-i18n="docsArch.tensorScoreBody">
+                The absolute-difference vector preserves pairwise feature disagreement and is
+                then collapsed by a final linear layer into a single classification logit.
               </p>
             </article>
           </div>

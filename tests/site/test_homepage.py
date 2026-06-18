@@ -9,6 +9,10 @@ SITE_DOCS_INDEX = REPO_ROOT / "site" / "docs" / "index.html"
 SITE_DOCS_ARCH = REPO_ROOT / "site" / "docs" / "architecture.html"
 SITE_DOCS_DATASET = REPO_ROOT / "site" / "docs" / "dataset.html"
 SITE_DOCS_TRAINING = REPO_ROOT / "site" / "docs" / "training.html"
+SITE_DOCS_MD_INDEX = REPO_ROOT / "site" / "docs" / "content" / "overview.md"
+SITE_DOCS_MD_ARCH = REPO_ROOT / "site" / "docs" / "content" / "architecture.md"
+SITE_DOCS_MD_DATASET = REPO_ROOT / "site" / "docs" / "content" / "dataset.md"
+SITE_DOCS_MD_TRAINING = REPO_ROOT / "site" / "docs" / "content" / "training.md"
 SITE_CSS = REPO_ROOT / "site" / "assets" / "site.css"
 SITE_JS = REPO_ROOT / "site" / "assets" / "site.js"
 SITE_LOSS = REPO_ROOT / "site" / "assets" / "loss.png"
@@ -31,6 +35,10 @@ class HomepageSmokeTests(unittest.TestCase):
             SITE_DOCS_ARCH,
             SITE_DOCS_DATASET,
             SITE_DOCS_TRAINING,
+            SITE_DOCS_MD_INDEX,
+            SITE_DOCS_MD_ARCH,
+            SITE_DOCS_MD_DATASET,
+            SITE_DOCS_MD_TRAINING,
             SITE_CSS,
             SITE_JS,
         ):
@@ -77,6 +85,10 @@ class HomepageSmokeTests(unittest.TestCase):
             'href="architecture.html"',
             'href="dataset.html"',
             'href="training.html"',
+            'href="content/overview.md"',
+            'href="content/architecture.md"',
+            'href="content/dataset.md"',
+            'href="content/training.md"',
         ):
             self.assertIn(marker, html)
         self.assertIn("Omniglot", html)
@@ -91,16 +103,49 @@ class HomepageSmokeTests(unittest.TestCase):
         self.assertIn('id="architecture-boundary"', arch_html)
         self.assertIn("model.py", arch_html)
         self.assertIn("forward_one", arch_html)
+        self.assertIn("tensor flow", arch_html.lower())
+        self.assertIn("current limitations", arch_html.lower())
+        self.assertIn('href="content/architecture.md"', arch_html)
 
         self.assertIn('id="dataset-boundary"', dataset_html)
         self.assertIn("mydataset.py", dataset_html)
         self.assertIn("OmniglotTrain", dataset_html)
         self.assertIn("OmniglotTest", dataset_html)
+        self.assertIn("control flow", dataset_html.lower())
+        self.assertIn("current limitations", dataset_html.lower())
+        self.assertIn('href="content/dataset.md"', dataset_html)
 
         self.assertIn('id="training-boundary"', training_html)
         self.assertIn("train.py", training_html)
         self.assertIn("BCEWithLogitsLoss", training_html)
         self.assertIn("DataParallel", training_html)
+        self.assertIn("control flow", training_html.lower())
+        self.assertIn("current limitations", training_html.lower())
+        self.assertIn('href="content/training.md"', training_html)
+
+    def test_markdown_doc_sources_are_present_and_detailed(self) -> None:
+        overview_md = read_text(SITE_DOCS_MD_INDEX)
+        arch_md = read_text(SITE_DOCS_MD_ARCH)
+        dataset_md = read_text(SITE_DOCS_MD_DATASET)
+        training_md = read_text(SITE_DOCS_MD_TRAINING)
+
+        self.assertIn("## Chapter map", overview_md)
+        self.assertIn("## Module boundary", arch_md)
+        self.assertIn("## Main classes and functions", arch_md)
+        self.assertIn("## Tensor flow", arch_md)
+        self.assertIn("forward_one", arch_md)
+
+        self.assertIn("## Module boundary", dataset_md)
+        self.assertIn("## Main classes and functions", dataset_md)
+        self.assertIn("## Control flow", dataset_md)
+        self.assertIn("OmniglotTrain", dataset_md)
+        self.assertIn("OmniglotTest", dataset_md)
+
+        self.assertIn("## Module boundary", training_md)
+        self.assertIn("## Main classes and functions", training_md)
+        self.assertIn("## Control flow", training_md)
+        self.assertIn("BCEWithLogitsLoss", training_md)
+        self.assertIn("DataParallel", training_md)
 
     def test_site_js_defaults_to_english(self) -> None:
         script = read_text(SITE_JS)

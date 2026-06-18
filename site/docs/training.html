@@ -39,6 +39,22 @@
       </header>
 
       <main class="docs-main">
+        <section class="panel docs-section" id="training-source">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docs.sourceEyebrow">Doc sources</p>
+            <h2 data-i18n="docsTrain.sourceTitle">Markdown source for this chapter</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsTrain.sourceBody">
+            This chapter is backed by a Markdown source file so the training runtime, data flow,
+            and limitations can be revised without embedding all long-form text inside the page.
+          </p>
+          <div class="cta-row">
+            <a class="secondary-cta" href="content/training.md" data-i18n="docsTrain.sourceLink">
+              Open training.md
+            </a>
+          </div>
+        </section>
+
         <section class="panel docs-section" id="training-boundary">
           <div class="section-heading">
             <p class="eyebrow" data-i18n="docsTrain.boundaryEyebrow">Module boundary</p>
@@ -68,6 +84,36 @@
               <p data-i18n="docsTrain.scheduleBody">
                 `show_every`, `save_every`, `test_every`, and `max_iter` determine how often
                 loss is printed, checkpoints are saved, and evaluation runs are executed.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="training-control-flow">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.controlEyebrow">Control flow</p>
+            <h2 data-i18n="docsTrain.controlTitle">What happens in each training iteration</h2>
+          </div>
+          <div class="docs-flow-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.controlStep1Title">1. Read a sampled pair</h3>
+              <p data-i18n="docsTrain.controlStep1Body">
+                The loader emits `(img1, img2, label)` from `OmniglotTrain`, optionally moving
+                tensors to CUDA before wrapping them in `Variable`.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.controlStep2Title">2. Compute logits and loss</h3>
+              <p data-i18n="docsTrain.controlStep2Body">
+                The model scores the pair, `BCEWithLogitsLoss` compares that score against the
+                label, and gradients are accumulated from the resulting scalar loss.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.controlStep3Title">3. Step the optimizer</h3>
+              <p data-i18n="docsTrain.controlStep3Body">
+                Adam updates the model weights, while the script separately tracks when to
+                print, checkpoint, and run the one-shot evaluation loop.
               </p>
             </article>
           </div>
@@ -121,6 +167,31 @@
               <p data-i18n="docsTrain.ckptBody">
                 The script saves intermediate weights under names like `model-inter-<step>.pt`
                 and stores sampled loss history into a `train_loss` pickle file.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="training-limits">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.limitEyebrow">Current limitations</p>
+            <h2 data-i18n="docsTrain.limitTitle">Tradeoffs in the orchestration layer</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.limitSingleTitle">Single-file orchestration</h3>
+              <p data-i18n="docsTrain.limitSingleBody">
+                `train.py` mixes configuration, train-time execution, evaluation, checkpointing,
+                and artifact writing in one script, which keeps the repo approachable but makes
+                isolated testing harder.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.limitResumeTitle">No resume path</h3>
+              <p data-i18n="docsTrain.limitResumeBody">
+                The current implementation saves intermediate checkpoints but does not expose a
+                first-class resume-from-checkpoint workflow or a separate offline evaluation
+                command.
               </p>
             </article>
           </div>

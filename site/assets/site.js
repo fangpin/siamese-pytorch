@@ -59,6 +59,28 @@ const translations = {
       "The current implementation reports around 89.5% final accuracy, slightly below the original paper's 92%.",
     "docs.mapEyebrow": "Docs map",
     "docs.mapTitle": "Navigate by implementation boundary",
+    "docs.readingEyebrow": "Reading guide",
+    "docs.readingTitle": "How to navigate the implementation",
+    "docs.readingStructureTitle": "Start from file ownership",
+    "docs.readingStructureBody":
+      "This repository is small enough that the source layout and the conceptual layout are almost identical: `model.py` owns model logic, `mydataset.py` owns data semantics, and `train.py` owns orchestration.",
+    "docs.readingFlowTitle": "Follow control flow end to end",
+    "docs.readingFlowBody":
+      "Read the chapters in the same order that the runtime executes: dataset construction first, model definition second, training loop last. This makes the evaluation contract and the final accuracy calculation easier to follow.",
+    "docs.sourceEyebrow": "Doc sources",
+    "docs.sourceTitle": "Markdown chapter sources",
+    "docs.sourceOverview": "Overview source",
+    "docs.sourceOverviewBody":
+      "The docs system map is backed by a Markdown source file so the long-form technical narrative can evolve without hard-coding everything into HTML.",
+    "docs.sourceArchitecture": "Architecture source",
+    "docs.sourceArchitectureBody":
+      "Contains the module boundary, main functions, tensor flow, tradeoffs, and limitations for `model.py`.",
+    "docs.sourceDataset": "Dataset source",
+    "docs.sourceDatasetBody":
+      "Captures the loading strategy, control flow, data flow, and evaluation contract behind `mydataset.py`.",
+    "docs.sourceTraining": "Training source",
+    "docs.sourceTrainingBody":
+      "Documents the `train.py` runtime orchestration, optimization path, artifacts, and current implementation limits.",
     "docs.repoEyebrow": "Repository map",
     "docs.repoTitle": "What each core file is responsible for",
     "docs.repoModelBody":
@@ -82,6 +104,10 @@ const translations = {
     "docsArch.title": "Siamese model architecture",
     "docsArch.subtitle":
       "Shared encoder path, embedding projection, comparison logic, and output scoring.",
+    "docsArch.sourceTitle": "Markdown source for this chapter",
+    "docsArch.sourceBody":
+      "This chapter is backed by a Markdown source file so the implementation narrative can stay editable and expand with the codebase.",
+    "docsArch.sourceLink": "Open architecture.md",
     "docsArch.boundaryEyebrow": "Module boundary",
     "docsArch.boundaryTitle": "`model.py` owns the whole similarity function",
     "docsArch.boundaryBody":
@@ -105,6 +131,17 @@ const translations = {
     "docsArch.step3Title": "3. Output layer",
     "docsArch.step3Body":
       "The difference vector is passed to `self.out`, producing a single logit for binary same-class vs different-class classification.",
+    "docsArch.tensorEyebrow": "Tensor flow",
+    "docsArch.tensorTitle": "How data changes shape inside the model",
+    "docsArch.tensorInputTitle": "Input and feature maps",
+    "docsArch.tensorInputBody":
+      "The model consumes grayscale Omniglot tensors. The convolution path gradually turns those images into deeper feature maps while shrinking spatial size through max pooling.",
+    "docsArch.tensorEmbedTitle": "Embedding projection",
+    "docsArch.tensorEmbedBody":
+      "After flattening, the tensor is mapped from a `9216`-wide vector into a `4096` dimensional embedding. That shared latent space is what makes pairwise comparison meaningful.",
+    "docsArch.tensorScoreTitle": "Scoring path",
+    "docsArch.tensorScoreBody":
+      "The absolute-difference vector preserves pairwise feature disagreement and is then collapsed by a final linear layer into a single classification logit.",
     "docsArch.tradeoffEyebrow": "Current limitations",
     "docsArch.tradeoffTitle": "Implementation tradeoffs in this repo",
     "docsArch.limit1Title": "Single-file ownership",
@@ -117,6 +154,10 @@ const translations = {
     "docsData.title": "Omniglot data pipeline",
     "docsData.subtitle":
       "In-memory loading, rotation augmentation, pair sampling, and one-shot episodes.",
+    "docsData.sourceTitle": "Markdown source for this chapter",
+    "docsData.sourceBody":
+      "This chapter is backed by a Markdown source file so the data contract and control flow can be maintained alongside the code explanation.",
+    "docsData.sourceLink": "Open dataset.md",
     "docsData.boundaryEyebrow": "Module boundary",
     "docsData.boundaryTitle": "`mydataset.py` defines both train and test loaders",
     "docsData.boundaryBody":
@@ -140,6 +181,14 @@ const translations = {
     "docsData.transformTitle": "Transforms",
     "docsData.transformBody":
       "The training path applies random affine augmentation before `ToTensor`, which injects mild shape variation into each sampled pair.",
+    "docsData.controlEyebrow": "Control flow",
+    "docsData.controlTitle": "How training and test loaders behave differently",
+    "docsData.controlTrainTitle": "Training control flow",
+    "docsData.controlTrainBody":
+      "`OmniglotTrain` behaves like an effectively unbounded pair generator. The declared length is synthetic, and the loader relies on index parity to decide whether to sample a same-class or different-class pair.",
+    "docsData.controlTestTitle": "Test control flow",
+    "docsData.controlTestBody":
+      "`OmniglotTest` encodes episode structure through position. The first item sets the anchor and true match, while the remaining items in the episode are distractors scored against that same anchor.",
     "docsData.testEyebrow": "Evaluation dataset",
     "docsData.testTitle": "`OmniglotTest` builds one-shot episodes",
     "docsData.episodeTitle": "Episode layout",
@@ -148,10 +197,22 @@ const translations = {
     "docsData.metricTitle": "Metric contract",
     "docsData.metricBody":
       "The training loop treats prediction as correct only when the maximum score in the episode lands on the first pair, which is the true match.",
+    "docsData.limitEyebrow": "Current limitations",
+    "docsData.limitTitle": "Tradeoffs in the current dataset implementation",
+    "docsData.limitMemoryTitle": "Memory-heavy design",
+    "docsData.limitMemoryBody":
+      "Keeping the entire dataset in memory reduces disk overhead but increases the RAM requirement and makes the implementation less suitable for larger datasets.",
+    "docsData.limitEpisodeTitle": "Implicit episode contract",
+    "docsData.limitEpisodeBody":
+      "Test-time semantics are encoded by index position instead of a richer episode object, which keeps the code short but makes the evaluation contract easier to break if batching logic changes.",
     "docsTrain.eyebrow": "Training chapter",
     "docsTrain.title": "Training loop and runtime behavior",
     "docsTrain.subtitle":
       "Flag parsing, dataloaders, BCEWithLogitsLoss, DataParallel, checkpoints, and test precision.",
+    "docsTrain.sourceTitle": "Markdown source for this chapter",
+    "docsTrain.sourceBody":
+      "This chapter is backed by a Markdown source file so the training runtime, data flow, and limitations can be revised without embedding all long-form text inside the page.",
+    "docsTrain.sourceLink": "Open training.md",
     "docsTrain.boundaryEyebrow": "Module boundary",
     "docsTrain.boundaryTitle": "`train.py` owns orchestration end to end",
     "docsTrain.boundaryBody":
@@ -164,6 +225,17 @@ const translations = {
     "docsTrain.scheduleTitle": "Schedule flags",
     "docsTrain.scheduleBody":
       "`show_every`, `save_every`, `test_every`, and `max_iter` determine how often loss is printed, checkpoints are saved, and evaluation runs are executed.",
+    "docsTrain.controlEyebrow": "Control flow",
+    "docsTrain.controlTitle": "What happens in each training iteration",
+    "docsTrain.controlStep1Title": "1. Read a sampled pair",
+    "docsTrain.controlStep1Body":
+      "The loader emits `(img1, img2, label)` from `OmniglotTrain`, optionally moving tensors to CUDA before wrapping them in `Variable`.",
+    "docsTrain.controlStep2Title": "2. Compute logits and loss",
+    "docsTrain.controlStep2Body":
+      "The model scores the pair, `BCEWithLogitsLoss` compares that score against the label, and gradients are accumulated from the resulting scalar loss.",
+    "docsTrain.controlStep3Title": "3. Step the optimizer",
+    "docsTrain.controlStep3Body":
+      "Adam updates the model weights, while the script separately tracks when to print, checkpoint, and run the one-shot evaluation loop.",
     "docsTrain.optEyebrow": "Optimization",
     "docsTrain.optTitle": "Loss, optimizer, and multi-GPU behavior",
     "docsTrain.lossTitle": "BCEWithLogitsLoss",
@@ -183,6 +255,14 @@ const translations = {
     "docsTrain.ckptTitle": "Checkpointing",
     "docsTrain.ckptBody":
       "The script saves intermediate weights under names like `model-inter-<step>.pt` and stores sampled loss history into a `train_loss` pickle file.",
+    "docsTrain.limitEyebrow": "Current limitations",
+    "docsTrain.limitTitle": "Tradeoffs in the orchestration layer",
+    "docsTrain.limitSingleTitle": "Single-file orchestration",
+    "docsTrain.limitSingleBody":
+      "`train.py` mixes configuration, train-time execution, evaluation, checkpointing, and artifact writing in one script, which keeps the repo approachable but makes isolated testing harder.",
+    "docsTrain.limitResumeTitle": "No resume path",
+    "docsTrain.limitResumeBody":
+      "The current implementation saves intermediate checkpoints but does not expose a first-class resume-from-checkpoint workflow or a separate offline evaluation command.",
   },
   zh: {
     "brand.eyebrow": "孪生网络 · Omniglot · PyTorch",
@@ -236,6 +316,28 @@ const translations = {
       "当前实现报告的最终准确率约为 89.5%，略低于原论文中的 92%。",
     "docs.mapEyebrow": "文档地图",
     "docs.mapTitle": "按实现边界导航",
+    "docs.readingEyebrow": "阅读方式",
+    "docs.readingTitle": "如何阅读这套实现",
+    "docs.readingStructureTitle": "先按文件边界理解",
+    "docs.readingStructureBody":
+      "这个仓库足够小，源码布局和概念布局几乎一致：`model.py` 负责模型逻辑，`mydataset.py` 负责数据语义，`train.py` 负责运行时调度。",
+    "docs.readingFlowTitle": "再顺着控制流往下读",
+    "docs.readingFlowBody":
+      "建议按运行顺序阅读章节：先看数据构造，再看模型定义，最后看训练循环。这样更容易理解评估契约和最终准确率是如何得出的。",
+    "docs.sourceEyebrow": "文档源文件",
+    "docs.sourceTitle": "Markdown 章节源文件",
+    "docs.sourceOverview": "总览源文件",
+    "docs.sourceOverviewBody":
+      "文档系统地图由 Markdown 源文件支撑，后续扩充技术叙述时不需要把所有长文本硬编码在 HTML 中。",
+    "docs.sourceArchitecture": "架构源文件",
+    "docs.sourceArchitectureBody":
+      "包含 `model.py` 的模块边界、主要函数、张量流、取舍和当前限制说明。",
+    "docs.sourceDataset": "数据源文件",
+    "docs.sourceDatasetBody":
+      "记录 `mydataset.py` 的加载策略、控制流、数据流和评估契约。",
+    "docs.sourceTraining": "训练源文件",
+    "docs.sourceTrainingBody":
+      "记录 `train.py` 的运行时调度、优化路径、训练产物以及当前实现限制。",
     "docs.repoEyebrow": "仓库地图",
     "docs.repoTitle": "核心文件分别负责什么",
     "docs.repoModelBody":
@@ -258,6 +360,10 @@ const translations = {
     "docsArch.eyebrow": "架构章节",
     "docsArch.title": "Siamese 模型架构",
     "docsArch.subtitle": "覆盖共享编码路径、嵌入投影、比较逻辑和最终打分。",
+    "docsArch.sourceTitle": "本章对应的 Markdown 源文件",
+    "docsArch.sourceBody":
+      "这一章由 Markdown 源文件支撑，方便在代码演进时继续扩展实现说明，而不是把长文本全部写死在页面里。",
+    "docsArch.sourceLink": "打开 architecture.md",
     "docsArch.boundaryEyebrow": "模块边界",
     "docsArch.boundaryTitle": "`model.py` 负责完整的相似度函数",
     "docsArch.boundaryBody":
@@ -281,6 +387,17 @@ const translations = {
     "docsArch.step3Title": "3. 输出层",
     "docsArch.step3Body":
       "差异向量会送入 `self.out`，输出一个单独的 logit，用于判断同类或异类。",
+    "docsArch.tensorEyebrow": "张量流",
+    "docsArch.tensorTitle": "数据在模型内部如何变化",
+    "docsArch.tensorInputTitle": "输入与特征图",
+    "docsArch.tensorInputBody":
+      "模型消费的是 Omniglot 灰度张量。卷积路径会在多次池化中逐步压缩空间尺寸，并生成更深的特征图表示。",
+    "docsArch.tensorEmbedTitle": "嵌入投影",
+    "docsArch.tensorEmbedBody":
+      "展平之后，张量会从 `9216` 维向量投影到 `4096` 维嵌入空间。这个共享潜在空间是后续成对比较成立的前提。",
+    "docsArch.tensorScoreTitle": "打分路径",
+    "docsArch.tensorScoreBody":
+      "绝对差向量保留了成对样本之间的逐维差异，最后再被线性层压缩成一个分类 logit。",
     "docsArch.tradeoffEyebrow": "当前限制",
     "docsArch.tradeoffTitle": "这份实现里的取舍",
     "docsArch.limit1Title": "单文件承载",
@@ -292,6 +409,10 @@ const translations = {
     "docsData.eyebrow": "数据章节",
     "docsData.title": "Omniglot 数据管线",
     "docsData.subtitle": "覆盖内存加载、旋转增强、样本对采样与 one-shot episode 组织。",
+    "docsData.sourceTitle": "本章对应的 Markdown 源文件",
+    "docsData.sourceBody":
+      "这一章由 Markdown 源文件支撑，便于把数据契约和控制流说明与代码解释一起维护。",
+    "docsData.sourceLink": "打开 dataset.md",
     "docsData.boundaryEyebrow": "模块边界",
     "docsData.boundaryTitle": "`mydataset.py` 同时定义训练集和测试集",
     "docsData.boundaryBody":
@@ -315,6 +436,14 @@ const translations = {
     "docsData.transformTitle": "图像变换",
     "docsData.transformBody":
       "训练路径会在 `ToTensor` 之前施加随机仿射增强，为样本对引入轻微形变扰动。",
+    "docsData.controlEyebrow": "控制流",
+    "docsData.controlTitle": "训练和测试 loader 的行为差异",
+    "docsData.controlTrainTitle": "训练控制流",
+    "docsData.controlTrainBody":
+      "`OmniglotTrain` 本质上是一个近似无限的样本对生成器。它声明的长度是合成值，并依赖索引奇偶来决定采样同类对还是异类对。",
+    "docsData.controlTestTitle": "测试控制流",
+    "docsData.controlTestBody":
+      "`OmniglotTest` 通过位置编码 episode 结构。第一个样本负责设置 anchor 和真实匹配项，后续位置则是围绕同一 anchor 的干扰项。",
     "docsData.testEyebrow": "测试集",
     "docsData.testTitle": "`OmniglotTest` 如何组织 one-shot episode",
     "docsData.episodeTitle": "Episode 结构",
@@ -323,10 +452,22 @@ const translations = {
     "docsData.metricTitle": "评估契约",
     "docsData.metricBody":
       "训练脚本只有在一个 episode 内最高得分落在第一个样本对上时，才认为预测成功。",
+    "docsData.limitEyebrow": "当前限制",
+    "docsData.limitTitle": "当前数据实现的取舍",
+    "docsData.limitMemoryTitle": "内存占用偏大",
+    "docsData.limitMemoryBody":
+      "把整个数据集放进内存能减少磁盘开销，但也提高了 RAM 需求，不适合直接照搬到更大的数据集场景。",
+    "docsData.limitEpisodeTitle": "Episode 契约是隐式的",
+    "docsData.limitEpisodeBody":
+      "测试阶段的语义通过索引位置表达，而不是通过更明确的 episode 对象表达。这让代码很短，但也更容易在 batching 逻辑变化时被破坏。",
     "docsTrain.eyebrow": "训练章节",
     "docsTrain.title": "训练循环与运行时行为",
     "docsTrain.subtitle":
       "覆盖参数解析、dataloader、BCEWithLogitsLoss、DataParallel、checkpoint 与测试精度。",
+    "docsTrain.sourceTitle": "本章对应的 Markdown 源文件",
+    "docsTrain.sourceBody":
+      "这一章由 Markdown 源文件支撑，便于后续继续修订训练运行时、数据流和实现限制说明，而不是把所有长文本写死在页面里。",
+    "docsTrain.sourceLink": "打开 training.md",
     "docsTrain.boundaryEyebrow": "模块边界",
     "docsTrain.boundaryTitle": "`train.py` 负责端到端调度",
     "docsTrain.boundaryBody":
@@ -339,6 +480,17 @@ const translations = {
     "docsTrain.scheduleTitle": "调度参数",
     "docsTrain.scheduleBody":
       "`show_every`、`save_every`、`test_every` 和 `max_iter` 控制 loss 输出、checkpoint 保存和评估执行频率。",
+    "docsTrain.controlEyebrow": "控制流",
+    "docsTrain.controlTitle": "每个训练迭代里发生了什么",
+    "docsTrain.controlStep1Title": "1. 读取采样对",
+    "docsTrain.controlStep1Body":
+      "loader 从 `OmniglotTrain` 取出 `(img1, img2, label)`，并在需要时把张量迁移到 CUDA，再包装成 `Variable`。",
+    "docsTrain.controlStep2Title": "2. 计算 logit 与 loss",
+    "docsTrain.controlStep2Body":
+      "模型先对样本对打分，`BCEWithLogitsLoss` 再把这个分数与标签比较，并从得到的标量 loss 反向传播梯度。",
+    "docsTrain.controlStep3Title": "3. 执行优化步骤",
+    "docsTrain.controlStep3Body":
+      "Adam 更新模型权重，而脚本同时根据步数判断是否需要打印、保存 checkpoint 或执行 one-shot 评估。",
     "docsTrain.optEyebrow": "优化过程",
     "docsTrain.optTitle": "Loss、优化器与多卡行为",
     "docsTrain.lossTitle": "BCEWithLogitsLoss",
@@ -358,6 +510,14 @@ const translations = {
     "docsTrain.ckptTitle": "Checkpoint 保存",
     "docsTrain.ckptBody":
       "脚本会保存 `model-inter-<step>.pt` 这类中间权重文件，并把采样得到的 loss 历史写入 `train_loss` pickle 文件。",
+    "docsTrain.limitEyebrow": "当前限制",
+    "docsTrain.limitTitle": "调度层的实现取舍",
+    "docsTrain.limitSingleTitle": "单文件承载调度逻辑",
+    "docsTrain.limitSingleBody":
+      "`train.py` 把配置、训练执行、评估、checkpoint 和产物写出都放在同一个脚本里，仓库更容易上手，但隔离测试会更困难。",
+    "docsTrain.limitResumeTitle": "缺少恢复训练路径",
+    "docsTrain.limitResumeBody":
+      "当前实现虽然会保存中间 checkpoint，但没有提供一等的断点恢复流程，也没有独立的离线评估命令。",
   },
 };
 

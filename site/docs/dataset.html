@@ -39,6 +39,22 @@
       </header>
 
       <main class="docs-main">
+        <section class="panel docs-section" id="dataset-source">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docs.sourceEyebrow">Doc sources</p>
+            <h2 data-i18n="docsData.sourceTitle">Markdown source for this chapter</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsData.sourceBody">
+            This chapter is backed by a Markdown source file so the data contract and control
+            flow can be maintained alongside the code explanation.
+          </p>
+          <div class="cta-row">
+            <a class="secondary-cta" href="content/dataset.md" data-i18n="docsData.sourceLink">
+              Open dataset.md
+            </a>
+          </div>
+        </section>
+
         <section class="panel docs-section" id="dataset-boundary">
           <div class="section-heading">
             <p class="eyebrow" data-i18n="docsData.boundaryEyebrow">Module boundary</p>
@@ -101,6 +117,31 @@
           </div>
         </section>
 
+        <section class="panel docs-section" id="dataset-control-flow">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.controlEyebrow">Control flow</p>
+            <h2 data-i18n="docsData.controlTitle">How training and test loaders behave differently</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsData.controlTrainTitle">Training control flow</h3>
+              <p data-i18n="docsData.controlTrainBody">
+                `OmniglotTrain` behaves like an effectively unbounded pair generator. The
+                declared length is synthetic, and the loader relies on index parity to decide
+                whether to sample a same-class or different-class pair.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.controlTestTitle">Test control flow</h3>
+              <p data-i18n="docsData.controlTestBody">
+                `OmniglotTest` encodes episode structure through position. The first item sets
+                the anchor and true match, while the remaining items in the episode are
+                distractors scored against that same anchor.
+              </p>
+            </article>
+          </div>
+        </section>
+
         <section class="panel docs-section" id="dataset-test">
           <div class="section-heading">
             <p class="eyebrow" data-i18n="docsData.testEyebrow">Evaluation dataset</p>
@@ -119,6 +160,30 @@
               <p data-i18n="docsData.metricBody">
                 The training loop treats prediction as correct only when the maximum score in
                 the episode lands on the first pair, which is the true match.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="dataset-limits">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.limitEyebrow">Current limitations</p>
+            <h2 data-i18n="docsData.limitTitle">Tradeoffs in the current dataset implementation</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsData.limitMemoryTitle">Memory-heavy design</h3>
+              <p data-i18n="docsData.limitMemoryBody">
+                Keeping the entire dataset in memory reduces disk overhead but increases the
+                RAM requirement and makes the implementation less suitable for larger datasets.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.limitEpisodeTitle">Implicit episode contract</h3>
+              <p data-i18n="docsData.limitEpisodeBody">
+                Test-time semantics are encoded by index position instead of a richer episode
+                object, which keeps the code short but makes the evaluation contract easier to
+                break if batching logic changes.
               </p>
             </article>
           </div>
