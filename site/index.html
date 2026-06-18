@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Siamese Networks for One-Shot Learning</title>
+    <meta
+      name="description"
+      content="A PyTorch reimplementation of Siamese Networks for one-shot learning on the Omniglot dataset."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/site.css" />
+    <script src="assets/site.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar" id="top">
+        <div class="brand-block">
+          <p class="eyebrow" data-i18n="brand.eyebrow">Siamese · Omniglot · PyTorch</p>
+          <h1 class="brand-title" data-i18n="brand.title">
+            Siamese Networks for One-Shot Learning
+          </h1>
+          <p class="brand-subtitle" data-i18n="brand.subtitle">
+            PyTorch reimplementation on the Omniglot dataset
+          </p>
+        </div>
+
+        <nav class="topbar-actions" aria-label="Primary">
+          <a class="nav-link" href="docs/" data-i18n="nav.docs">Docs</a>
+          <a
+            class="repo-link"
+            href="https://github.com/fangpin/siamese-pytorch"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub · fangpin/siamese-pytorch
+          </a>
+          <div class="lang-toggle" role="group" aria-label="Language selector">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="zh">中文</button>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" id="hero">
+          <div class="hero-grid">
+            <div class="hero-copy panel">
+              <p class="eyebrow" data-i18n="hero.eyebrow">One-shot learning system</p>
+              <h2 data-i18n="hero.title">Twin encoders, one-shot decisions.</h2>
+              <p class="hero-text" data-i18n="hero.body">
+                A compact Siamese PyTorch implementation trained on Omniglot, with a clear
+                path from paper to runnable code.
+              </p>
+              <div class="cta-row">
+                <a
+                  class="primary-cta"
+                  href="https://github.com/fangpin/siamese-pytorch"
+                  target="_blank"
+                  rel="noreferrer"
+                  data-i18n="hero.ctaRepo"
+                >
+                  GitHub Repository
+                </a>
+                <a class="secondary-cta" href="docs/" data-i18n="hero.ctaDocs">
+                  Documentation
+                </a>
+                <a class="secondary-cta" href="#quick-start" data-i18n="hero.ctaQuickStart">
+                  Quick Start
+                </a>
+              </div>
+            </div>
+
+            <aside class="hero-panels">
+              <section class="panel" id="metrics">
+                <p class="panel-label" data-i18n="metrics.label">Quick facts</p>
+                <div class="stats-grid">
+                  <article class="stat-card">
+                    <span class="stat-value">89.5%</span>
+                    <span class="stat-label" data-i18n="metrics.accuracy">Final accuracy</span>
+                  </article>
+                  <article class="stat-card">
+                    <span class="stat-value">20-way</span>
+                    <span class="stat-label" data-i18n="metrics.evaluation">One-shot test</span>
+                  </article>
+                  <article class="stat-card">
+                    <span class="stat-value">PyTorch</span>
+                    <span class="stat-label" data-i18n="metrics.framework">Framework</span>
+                  </article>
+                  <article class="stat-card">
+                    <span class="stat-value">Omniglot</span>
+                    <span class="stat-label" data-i18n="metrics.dataset">Dataset</span>
+                  </article>
+                </div>
+              </section>
+
+              <section class="panel architecture-panel" id="architecture">
+                <p class="panel-label" data-i18n="architecture.label">Architecture snapshot</p>
+                <div class="architecture-visual" aria-hidden="true">
+                  <div class="branch">
+                    <span>Input A</span>
+                    <span>Conv stack</span>
+                    <span>4096-D</span>
+                  </div>
+                  <div class="merge-node">|x1 - x2|</div>
+                  <div class="branch">
+                    <span>Input B</span>
+                    <span>Conv stack</span>
+                    <span>4096-D</span>
+                  </div>
+                </div>
+                <p class="panel-note" data-i18n="architecture.note">
+                  Shared twin encoders, absolute difference, then a final linear score.
+                </p>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section class="section-grid">
+          <section class="panel" id="quick-start">
+            <div class="section-heading">
+              <p class="eyebrow" data-i18n="quickStart.eyebrow">Run the project</p>
+              <h2 data-i18n="quickStart.title">Quick Start</h2>
+            </div>
+            <p class="section-copy" data-i18n="quickStart.body">
+              Prepare Omniglot, create the model directory, and launch training with the
+              provided script.
+            </p>
+            <pre class="code-block"><code>git clone https://github.com/brendenlake/omniglot.git
+cd omniglot/python
+unzip images_evaluation.zip
+unzip images_background.zip
+cd ../..
+mkdir models
+python3 train.py --train_path omniglot/python/images_background \
+                 --test_path omniglot/python/images_evaluation \
+                 --gpu_ids 0 \
+                 --model_path models</code></pre>
+          </section>
+
+          <section class="panel" id="implementation-notes">
+            <div class="section-heading">
+              <p class="eyebrow" data-i18n="notes.eyebrow">Implementation notes</p>
+              <h2 data-i18n="notes.title">Why the result differs from the paper</h2>
+            </div>
+            <div class="note-grid">
+              <article class="note-card">
+                <h3 data-i18n="notes.optimizerTitle">Optimizer choice</h3>
+                <p data-i18n="notes.optimizerBody">
+                  This implementation uses Adam instead of SGD with momentum.
+                </p>
+              </article>
+              <article class="note-card">
+                <h3 data-i18n="notes.paramsTitle">Parameter settings</h3>
+                <p data-i18n="notes.paramsBody">
+                  The code keeps default PyTorch initialization and shared settings instead of
+                  layer-specific tuning from the paper.
+                </p>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="panel curve-panel" id="training-curve">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="curve.eyebrow">Experiment artifact</p>
+            <h2 data-i18n="curve.title">Training curve</h2>
+          </div>
+          <p class="section-copy" data-i18n="curve.body">
+            The repository includes a sampled loss curve collected during training.
+          </p>
+          <figure class="curve-figure">
+            <img src="assets/loss.png" alt="Training loss curve for the Siamese network." />
+          </figure>
+        </section>
+      </main>
+
+      <footer class="footer panel">
+        <div>
+          <p class="eyebrow" data-i18n="footer.eyebrow">Explore the project</p>
+          <h2 data-i18n="footer.title">Sources and references</h2>
+        </div>
+        <div class="footer-links">
+          <a href="docs/" data-i18n="footer.docs">Project Docs</a>
+          <a href="https://github.com/fangpin/siamese-pytorch" target="_blank" rel="noreferrer">
+            GitHub Repository
+          </a>
+          <a
+            href="https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Original Paper
+          </a>
+          <a href="https://github.com/brendenlake/omniglot" target="_blank" rel="noreferrer">
+            Omniglot Dataset
+          </a>
+          <a
+            href="https://github.com/fangpin/siamese-pytorch/blob/master/train.py"
+            target="_blank"
+            rel="noreferrer"
+          >
+            train.py
+          </a>
+          <a
+            href="https://github.com/fangpin/siamese-pytorch/blob/master/model.py"
+            target="_blank"
+            rel="noreferrer"
+          >
+            model.py
+          </a>
+          <a
+            href="https://github.com/fangpin/siamese-pytorch/blob/master/mydataset.py"
+            target="_blank"
+            rel="noreferrer"
+          >
+            mydataset.py
+          </a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

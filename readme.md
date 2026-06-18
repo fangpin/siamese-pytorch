@@ -1,5 +1,7 @@
 # Siamese Networks for One-Shot Learning
 
+[Project Site](https://fangpin.github.io/siamese-pytorch/) | [Docs](https://fangpin.github.io/siamese-pytorch/docs/)
+
 A reimplementation of the [original paper](https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf) in pytorch with
 training and testing on the [Omniglot dataset](https://github.com/brendenlake/omniglot).
 

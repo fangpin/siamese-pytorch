@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Siamese Docs - Dataset</title>
+    <meta
+      name="description"
+      content="Dataset chapter for the Siamese Networks for One-Shot Learning PyTorch implementation."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/site.css" />
+    <script src="../assets/site.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell docs-shell">
+      <header class="topbar" id="top">
+        <div class="brand-block">
+          <p class="eyebrow" data-i18n="docsData.eyebrow">Dataset chapter</p>
+          <h1 class="brand-title" data-i18n="docsData.title">Omniglot data pipeline</h1>
+          <p class="brand-subtitle" data-i18n="docsData.subtitle">
+            In-memory loading, rotation augmentation, pair sampling, and one-shot episodes.
+          </p>
+        </div>
+
+        <nav class="topbar-actions" aria-label="Primary">
+          <a class="nav-link" href="index.html" data-i18n="docs.backDocs">Docs Home</a>
+          <a class="nav-link" href="../index.html" data-i18n="docs.backHome">Home</a>
+          <div class="lang-toggle" role="group" aria-label="Language selector">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="zh">中文</button>
+          </div>
+        </nav>
+      </header>
+
+      <main class="docs-main">
+        <section class="panel docs-section" id="dataset-boundary">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.boundaryEyebrow">Module boundary</p>
+            <h2 data-i18n="docsData.boundaryTitle">`mydataset.py` defines both train and test loaders</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsData.boundaryBody">
+            The repository uses two custom dataset classes: `OmniglotTrain` for endless pair
+            sampling during optimization and `OmniglotTest` for one-shot evaluation episodes.
+          </p>
+        </section>
+
+        <section class="panel docs-section" id="dataset-train">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.trainEyebrow">Training dataset</p>
+            <h2 data-i18n="docsData.trainTitle">`OmniglotTrain` loads and augments character classes</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsData.memTitle">In-memory cache</h3>
+              <p data-i18n="docsData.memBody">
+                `loadToMem` walks the full training tree once and stores PIL images in memory,
+                reducing repeated disk access during long training runs.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.rotateTitle">Rotation expansion</h3>
+              <p data-i18n="docsData.rotateBody">
+                Each class is duplicated at 0, 90, 180, and 270 degrees, effectively turning
+                orientation variants into extra class identities.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="dataset-sampling">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.samplingEyebrow">Sampling logic</p>
+            <h2 data-i18n="docsData.samplingTitle">Positive and negative pair generation</h2>
+          </div>
+          <div class="docs-flow-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsData.posTitle">Positive pairs</h3>
+              <p data-i18n="docsData.posBody">
+                Odd indices sample two images from the same class and return label `1.0`.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.negTitle">Negative pairs</h3>
+              <p data-i18n="docsData.negBody">
+                Even indices sample images from different classes and return label `0.0`.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.transformTitle">Transforms</h3>
+              <p data-i18n="docsData.transformBody">
+                The training path applies random affine augmentation before `ToTensor`, which
+                injects mild shape variation into each sampled pair.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="dataset-test">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsData.testEyebrow">Evaluation dataset</p>
+            <h2 data-i18n="docsData.testTitle">`OmniglotTest` builds one-shot episodes</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsData.episodeTitle">Episode layout</h3>
+              <p data-i18n="docsData.episodeBody">
+                Index `0` in each episode creates the anchor image and a true match. The
+                remaining `way - 1` entries are distractor classes.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsData.metricTitle">Metric contract</h3>
+              <p data-i18n="docsData.metricBody">
+                The training loop treats prediction as correct only when the maximum score in
+                the episode lands on the first pair, which is the true match.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

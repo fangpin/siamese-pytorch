@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Siamese Docs - Training</title>
+    <meta
+      name="description"
+      content="Training chapter for the Siamese Networks for One-Shot Learning PyTorch implementation."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/site.css" />
+    <script src="../assets/site.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell docs-shell">
+      <header class="topbar" id="top">
+        <div class="brand-block">
+          <p class="eyebrow" data-i18n="docsTrain.eyebrow">Training chapter</p>
+          <h1 class="brand-title" data-i18n="docsTrain.title">Training loop and runtime behavior</h1>
+          <p class="brand-subtitle" data-i18n="docsTrain.subtitle">
+            Flag parsing, dataloaders, BCEWithLogitsLoss, DataParallel, checkpoints, and test precision.
+          </p>
+        </div>
+
+        <nav class="topbar-actions" aria-label="Primary">
+          <a class="nav-link" href="index.html" data-i18n="docs.backDocs">Docs Home</a>
+          <a class="nav-link" href="../index.html" data-i18n="docs.backHome">Home</a>
+          <div class="lang-toggle" role="group" aria-label="Language selector">
+            <button type="button" data-lang="en">EN</button>
+            <button type="button" data-lang="zh">中文</button>
+          </div>
+        </nav>
+      </header>
+
+      <main class="docs-main">
+        <section class="panel docs-section" id="training-boundary">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.boundaryEyebrow">Module boundary</p>
+            <h2 data-i18n="docsTrain.boundaryTitle">`train.py` owns orchestration end to end</h2>
+          </div>
+          <p class="section-copy" data-i18n="docsTrain.boundaryBody">
+            The script handles flag parsing, path selection, dataloader creation, optimizer
+            setup, checkpointing, intermediate evaluation, and final accuracy reporting.
+          </p>
+        </section>
+
+        <section class="panel docs-section" id="training-flags">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.flagsEyebrow">Runtime flags</p>
+            <h2 data-i18n="docsTrain.flagsTitle">Config is driven through `gflags`</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.pathsTitle">Path flags</h3>
+              <p data-i18n="docsTrain.pathsBody">
+                `train_path`, `test_path`, and `model_path` define where Omniglot data is read
+                from and where checkpoints are written.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.scheduleTitle">Schedule flags</h3>
+              <p data-i18n="docsTrain.scheduleBody">
+                `show_every`, `save_every`, `test_every`, and `max_iter` determine how often
+                loss is printed, checkpoints are saved, and evaluation runs are executed.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="training-optimization">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.optEyebrow">Optimization</p>
+            <h2 data-i18n="docsTrain.optTitle">Loss, optimizer, and multi-GPU behavior</h2>
+          </div>
+          <div class="docs-flow-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.lossTitle">BCEWithLogitsLoss</h3>
+              <p data-i18n="docsTrain.lossBody">
+                The model emits raw logits and the script applies `torch.nn.BCEWithLogitsLoss`
+                directly, which keeps the sigmoid inside the numerically stable loss function.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.adamTitle">Adam optimizer</h3>
+              <p data-i18n="docsTrain.adamBody">
+                The training loop uses Adam rather than SGD with momentum, which is one of the
+                documented reasons the final metric differs from the paper.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.gpuTitle">DataParallel</h3>
+              <p data-i18n="docsTrain.gpuBody">
+                If multiple GPU ids are provided, the script wraps the network with
+                `torch.nn.DataParallel` after constructing the Siamese model.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel docs-section" id="training-eval">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="docsTrain.evalEyebrow">Evaluation and artifacts</p>
+            <h2 data-i18n="docsTrain.evalTitle">How the script measures precision and saves state</h2>
+          </div>
+          <div class="docs-detail-grid">
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.precisionTitle">Episode precision</h3>
+              <p data-i18n="docsTrain.precisionBody">
+                For each test episode, the model compares all candidates and treats the
+                prediction as correct only if `np.argmax(output)` returns the first item.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3 data-i18n="docsTrain.ckptTitle">Checkpointing</h3>
+              <p data-i18n="docsTrain.ckptBody">
+                The script saves intermediate weights under names like `model-inter-<step>.pt`
+                and stores sampled loss history into a `train_loss` pickle file.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
